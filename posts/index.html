@@ -131,25 +131,6 @@
     Posts
   </h1>
 </header>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>MacOS在企业端使用docker desktop受限，docker服务端无法启动导致docker服务端的一般能力无法使用。虽然大多数时候docker编译构建已经被流水线或自动化脚本等托管，但是在学习初期或调试阶段仍然需要在本地制作镜像或运行容器。 因此，本教程选择使用colima代替docker desktop。 Prepare 安装需要的组件：
-# docker &amp; colima on mac brew install --cask docker brew install colima brew install docker-compose brew install colima的时候会自动安装lima，如果lima已经被安装则会跳过该部分的安装。
-lima &amp; colima https://github.com/lima-vm/lima colima依赖于lima(Linux on mac)，通过lima启动Linux虚拟机让docker客户端访问虚拟机中的docker服务，从而使得docker对用户提供的一般能力可以正常使用。
-Lima的相关使用 # 启动一个default linux虚拟机 limactl start default # 查看当前linux虚拟机 limactl list # 进入虚拟机的shell换将 limactl shell default lima会默认挂载在mac的根目录下，即全部目录，进入linux shell后可以访问mac的全部目录。 通过修改配置文件的方式修改挂载目录
-# 进入默认linux虚拟机的dir cd ~/.lima/default # 修改lima.yaml文件的挂载目录 vim lima.yaml ![[Pasted image 20250731174554.png]]
-Run！ 首先启动colima保证docker服务启动
-colima start --cpu 4 --memory 6 --disk 60 使用docker
-...</p>
-  </div>
-  <footer class="entry-footer"></footer>
-  <a class="entry-link" aria-label="post link to " href="https://kosnamm.github.io/posts/docker-setup-on-macos/"></a>
-</article>
     </main>
     
 <footer class="footer">
