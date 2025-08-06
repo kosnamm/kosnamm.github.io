@@ -2,25 +2,25 @@
 <html lang="en" dir="auto">
 
 <head>
-	<meta name="generator" content="Hugo 0.148.2"><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+	<meta name="generator" content="Hugo 0.148.2"><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="noindex, nofollow">
+<meta name="robots" content="index, follow">
 <title>Matthew&#39;s Blog</title>
 
 <meta name="description" content="">
 <meta name="author" content="">
-<link rel="canonical" href="http://localhost:1313/">
+<link rel="canonical" href="https://kosnamm.github.io/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.8fe10233a706bc87f2e08b3cf97b8bd4c0a80f10675a143675d59212121037c0.css" integrity="sha256-j&#43;ECM6cGvIfy4Is8&#43;XuL1MCoDxBnWhQ2ddWSEhIQN8A=" rel="preload stylesheet" as="style">
-<link rel="icon" href="http://localhost:1313/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
-<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
-<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<link rel="icon" href="https://kosnamm.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://kosnamm.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://kosnamm.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://kosnamm.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://kosnamm.github.io/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/index.xml">
-<link rel="alternate" hreflang="en" href="http://localhost:1313/">
+<link rel="alternate" type="application/rss+xml" href="https://kosnamm.github.io/index.xml">
+<link rel="alternate" hreflang="en" href="https://kosnamm.github.io/">
 <noscript>
     <style>
         #theme-toggle,
@@ -57,7 +57,28 @@
         }
 
     </style>
-</noscript>
+</noscript><meta property="og:url" content="https://kosnamm.github.io/">
+  <meta property="og:site_name" content="Matthew&#39;s Blog">
+  <meta property="og:title" content="Matthew&#39;s Blog">
+  <meta property="og:locale" content="en-us">
+  <meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Matthew&#39;s Blog">
+<meta name="twitter:description" content="">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Matthew's Blog",
+  "url": "https://kosnamm.github.io/",
+  "description": "",
+  "logo": "https://kosnamm.github.io/favicon.ico",
+  "sameAs": [
+      
+  ]
+}
+</script>
 </head>
 
 <body class="list" id="top">
@@ -75,7 +96,7 @@
 <header class="header">
     <nav class="nav">
         <div class="logo">
-            <a href="http://localhost:1313/" accesskey="h" title="Matthew&#39;s Blog (Alt + H)">Matthew&#39;s Blog</a>
+            <a href="https://kosnamm.github.io/" accesskey="h" title="Matthew&#39;s Blog (Alt + H)">Matthew&#39;s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
                     <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
@@ -107,19 +128,26 @@
 
 <article class="first-entry"> 
   <header class="entry-header">
-    <h2 class="entry-hint-parent">My 1st post
+    <h2 class="entry-hint-parent">
     </h2>
   </header>
   <div class="entry-content">
-    <p></p>
+    <p>MacOS在企业端使用docker desktop受限，docker服务端无法启动导致docker服务端的一般能力无法使用。虽然大多数时候docker编译构建已经被流水线或自动化脚本等托管，但是在学习初期或调试阶段仍然需要在本地制作镜像或运行容器。 因此，本教程选择使用colima代替docker desktop。 Prepare 安装需要的组件：
+# docker &amp; colima on mac brew install --cask docker brew install colima brew install docker-compose brew install colima的时候会自动安装lima，如果lima已经被安装则会跳过该部分的安装。
+lima &amp; colima https://github.com/lima-vm/lima colima依赖于lima(Linux on mac)，通过lima启动Linux虚拟机让docker客户端访问虚拟机中的docker服务，从而使得docker对用户提供的一般能力可以正常使用。
+Lima的相关使用 # 启动一个default linux虚拟机 limactl start default # 查看当前linux虚拟机 limactl list # 进入虚拟机的shell换将 limactl shell default lima会默认挂载在mac的根目录下，即全部目录，进入linux shell后可以访问mac的全部目录。 通过修改配置文件的方式修改挂载目录
+# 进入默认linux虚拟机的dir cd ~/.lima/default # 修改lima.yaml文件的挂载目录 vim lima.yaml ![[Pasted image 20250731174554.png]]
+Run！ 首先启动colima保证docker服务启动
+colima start --cpu 4 --memory 6 --disk 60 使用docker
+...</p>
   </div>
-  <footer class="entry-footer"><span title='2020-09-15 11:30:03 +0000 +0000'>September 15, 2020</span>&nbsp;·&nbsp;0 min&nbsp;·&nbsp;0 words&nbsp;·&nbsp;Me</footer>
-  <a class="entry-link" aria-label="post link to My 1st post" href="http://localhost:1313/posts/my-first-post/"></a>
+  <footer class="entry-footer"></footer>
+  <a class="entry-link" aria-label="post link to " href="https://kosnamm.github.io/posts/docker-setup-on-macos/"></a>
 </article>
     </main>
     
 <footer class="footer">
-        <span>&copy; 2025 <a href="http://localhost:1313/">Matthew&#39;s Blog</a></span> · 
+        <span>&copy; 2025 <a href="https://kosnamm.github.io/">Matthew&#39;s Blog</a></span> · 
 
     <span>
         Powered by
