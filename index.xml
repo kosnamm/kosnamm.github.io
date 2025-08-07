@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title></title>
-    <link>http://localhost:1313/</link>
+    <link>https://kosnamm.github.io/</link>
     <description>Recent content on </description>
     <image>
       <title></title>
-      <url>http://localhost:1313/%3Clink%20or%20path%20%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
-      <link>http://localhost:1313/%3Clink%20or%20path%20%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
+      <url>https://kosnamm.github.io/%3Clink%20or%20path%20%20of%20image%20for%20opengraph,%20twitter-cards%3E</url>
+      <link>https://kosnamm.github.io/%3Clink%20or%20path%20%20of%20image%20for%20opengraph,%20twitter-cards%3E</link>
     </image>
     <generator>Hugo -- 0.148.2</generator>
     <language>en-us</language>
-    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://kosnamm.github.io/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Setup Docker on MacOS</title>
-      <link>http://localhost:1313/posts/docker-setup-on-macos/</link>
+      <link>https://kosnamm.github.io/posts/docker-setup-on-macos/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/posts/docker-setup-on-macos/</guid>
+      <guid>https://kosnamm.github.io/posts/docker-setup-on-macos/</guid>
       <description>&lt;p&gt;MacOS在企业端使用docker desktop受限，docker服务端无法启动导致docker服务端的一般能力无法使用。虽然大多数时候docker编译构建已经被流水线或自动化脚本等托管，但是在学习初期或调试阶段仍然需要在本地制作镜像或运行容器。
 因此，本教程选择使用colima代替docker desktop。&lt;/p&gt;
 &lt;h1 id=&#34;prepare&#34;&gt;Prepare&lt;/h1&gt;
