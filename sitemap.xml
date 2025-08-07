@@ -2,16 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://kosnamm.github.io/</loc>
+    <loc>http://kosnamm.github.io/</loc>
   </url><url>
-    <loc>https://kosnamm.github.io/archives/</loc>
+    <loc>http://kosnamm.github.io/archives/</loc>
   </url><url>
-    <loc>https://kosnamm.github.io/categories/</loc>
+    <loc>http://kosnamm.github.io/categories/</loc>
   </url><url>
-    <loc>https://kosnamm.github.io/posts/</loc>
+    <loc>http://kosnamm.github.io/posts/</loc>
   </url><url>
-    <loc>https://kosnamm.github.io/posts/docker-setup-on-macos/</loc>
+    <loc>http://kosnamm.github.io/posts/docker-setup-on-macos/</loc>
   </url><url>
-    <loc>https://kosnamm.github.io/tags/</loc>
+    <loc>http://kosnamm.github.io/tags/</loc>
   </url>
 </urlset>
