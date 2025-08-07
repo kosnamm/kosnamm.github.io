@@ -2,11 +2,11 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://kosnamm.github.io/</loc>
-  </url><url>
     <loc>https://kosnamm.github.io/archives/</loc>
   </url><url>
     <loc>https://kosnamm.github.io/categories/</loc>
+  </url><url>
+    <loc>https://kosnamm.github.io/</loc>
   </url><url>
     <loc>https://kosnamm.github.io/posts/</loc>
   </url><url>
