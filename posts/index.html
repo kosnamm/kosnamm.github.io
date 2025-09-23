@@ -6,9 +6,9 @@ Prepare 安装需要的组件：
 # docker & colima on mac brew install --cask docker brew install colima brew install docker-compose brew install colima的时候会自动安装lima，如果lima已经被安装则会跳过该部分的安装。
 lima & colima https://github.com/lima-vm/lima colima依赖于lima(Linux on mac)，通过lima启动Linux虚拟机让docker客户端访问虚拟机中的docker服务，从而使得docker对用户提供的一般能力可以正常使用。
 Lima的相关使用 # 启动一个default linux虚拟机 limactl start default # 查看当前linux虚拟机 limactl list # 进入虚拟机的shell换将 limactl shell default lima会默认挂载在mac的根目录下，即全部目录，进入linux shell后可以访问mac的全部目录。 通过修改配置文件的方式修改挂载目录
-# 进入默认linux虚拟机的dir cd ~/.lima/default # 修改lima.yaml文件的挂载目录 vim lima.yaml ![[Pasted image 20250731174554.png]] Run！ 首先启动colima保证docker服务启动
+# 进入默认linux虚拟机的dir cd ~/.lima/default # 修改lima.yaml文件的挂载目录 vim lima.yaml Run！ 首先启动colima保证docker服务启动
 colima start --cpu 4 --memory 6 --disk 60 使用docker
-...</p></div><footer class=entry-footer>1 min&nbsp;·&nbsp;75 words&nbsp;·&nbsp;Matthew</footer><a class=entry-link aria-label="post link to Setup Docker on MacOS" href=https://kosnamm.github.io/posts/docker-setup-on-macos/></a></article></main><footer class=footer><span>&copy; 2025 <a href=https://kosnamm.github.io/>Matthew's Blog</a></span> ·
+...</p></div><footer class=entry-footer>1 min&nbsp;·&nbsp;72 words&nbsp;·&nbsp;Matthew</footer><a class=entry-link aria-label="post link to Setup Docker on MacOS" href=https://kosnamm.github.io/posts/docker-setup-on-macos/></a></article></main><footer class=footer><span>&copy; 2025 <a href=https://kosnamm.github.io/>Matthew's Blog</a></span> ·
 <span>Powered by
 <a href=https://gohugo.io/ rel="noopener noreferrer" target=_blank>Hugo</a> &
 <a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top aria-label="go to top" title="Go to Top (Alt + G)" class=top-link id=top-link accesskey=g><svg viewBox="0 0 12 6" fill="currentColor"><path d="M12 6H0l6-6z"/></svg>
