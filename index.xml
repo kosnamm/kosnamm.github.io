@@ -17,8 +17,9 @@
       <link>https://kosnamm.github.io/posts/docker-setup-on-macos/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       <guid>https://kosnamm.github.io/posts/docker-setup-on-macos/</guid>
-      <description>&lt;p&gt;MacOS在企业端使用docker desktop受限，docker服务端无法启动导致docker服务端的一般能力无法使用。虽然大多数时候docker编译构建已经被流水线或自动化脚本等托管，但是在学习初期或调试阶段仍然需要在本地制作镜像或运行容器.
-因此，本教程选择使用colima代替docker desktop.&lt;/p&gt;
+      <description>&lt;p&gt;MacOS在企业端使用docker desktop受限，docker服务端无法启动导致docker服务端的一般能力无法使用。虽然大多数时候docker编译构建已经被流水线或自动化脚本等托管，但是在学习初期或调试阶段仍然需要在本地制作镜像或运行容器。
+因此，本教程选择使用colima代替docker desktop。&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;colima会利用lima(linux on Mac)虚拟机，在lima中启动docker服务，让本地的docker-cli直接访问lima虚拟机中的docker服务，从而绕开docker服务在MacOS本地无法启动的问题。&lt;/em&gt;&lt;/p&gt;
 &lt;h1 id=&#34;prepare&#34;&gt;Prepare&lt;/h1&gt;
 &lt;p&gt;安装需要的组件：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# docker &amp;amp; colima on mac&lt;/span&gt;
