@@ -52,5 +52,12 @@
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;colima start --cpu &lt;span class=&#34;m&#34;&gt;4&lt;/span&gt; --memory &lt;span class=&#34;m&#34;&gt;6&lt;/span&gt; --disk &lt;span class=&#34;m&#34;&gt;60&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;使用docker&lt;/p&gt;</description>
     </item>
+    <item>
+      <title>Multi Agent Based Text2sql Middleware</title>
+      <link>https://kosnamm.github.io/multi-agent_based_text2sql_middleware/</link>
+      <pubDate>Tue, 23 Sep 2025 16:25:41 +0800</pubDate>
+      <guid>https://kosnamm.github.io/multi-agent_based_text2sql_middleware/</guid>
+      <description></description>
+    </item>
   </channel>
 </rss>
