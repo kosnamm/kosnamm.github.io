@@ -2,9 +2,6 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://kosnamm.github.io/categories/</loc>
-    <lastmod>2025-11-01T16:25:41+08:00</lastmod>
-  </url><url>
     <loc>https://kosnamm.github.io/tags/container-tech/</loc>
     <lastmod>2025-11-01T16:25:41+08:00</lastmod>
   </url><url>
@@ -20,13 +17,7 @@
     <loc>https://kosnamm.github.io/posts/docker-setup-on-macos/</loc>
     <lastmod>2025-11-01T16:25:41+08:00</lastmod>
   </url><url>
-    <loc>https://kosnamm.github.io/categories/syntax/</loc>
-    <lastmod>2025-11-01T16:25:41+08:00</lastmod>
-  </url><url>
     <loc>https://kosnamm.github.io/tags/</loc>
-    <lastmod>2025-11-01T16:25:41+08:00</lastmod>
-  </url><url>
-    <loc>https://kosnamm.github.io/categories/themes/</loc>
     <lastmod>2025-11-01T16:25:41+08:00</lastmod>
   </url><url>
     <loc>https://kosnamm.github.io/tags/virtualization/</loc>
@@ -42,6 +33,8 @@
     <lastmod>2025-09-23T16:25:41+08:00</lastmod>
   </url><url>
     <loc>https://kosnamm.github.io/archives/</loc>
+  </url><url>
+    <loc>https://kosnamm.github.io/categories/</loc>
   </url><url>
     <loc>https://kosnamm.github.io/search/</loc>
   </url>
