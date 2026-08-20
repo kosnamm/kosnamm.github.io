@@ -11,8 +11,50 @@
     </image>
     <generator>Hugo -- 0.152.2</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 01 Nov 2025 16:25:41 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 24 Mar 2026 23:38:04 +0800</lastBuildDate>
     <atom:link href="https://kosnamm.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Git Workflow</title>
+      <link>https://kosnamm.github.io/posts/git_workflow/</link>
+      <pubDate>Tue, 24 Mar 2026 23:38:04 +0800</pubDate>
+      <guid>https://kosnamm.github.io/posts/git_workflow/</guid>
+      <description>&lt;p&gt;Git是一个免费开源的分布式版本控制系统，旨在快速高效地处理从大到小的各种项目。在现如今的软件开发领域，无论我们从事何种形式的开发，Git基本上都是版本管理的必然选择，Git将会伴随项目代码的整个生命周期。在这篇文章当中，我们不会详细解释每一个Git命令，而是基于Github Flow工作流程来介绍如何在多人合作的代码仓库当中，优雅地完成一次commit。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;工欲善其事，必先利其器。正式开始之前，先看一下如何下载Git。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;strong&gt;MacOS&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;MacOS下推荐使用&lt;code&gt;brew&lt;/code&gt;下载Git：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;brew install git
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Windows和Linux系统下&lt;a href=&#34;https://git-scm.com/downloads&#34;&gt;Git官网&lt;/a&gt;也提供了专用的下载方式。&lt;/p&gt;
+&lt;p&gt;当完成Git的下载安装后，可以使用&lt;code&gt;git --version&lt;/code&gt;命令在终端中检查是否成功安装，正常情况下会输出所安装Git的版本号。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;git --version
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;first-commit&#34;&gt;First Commit&lt;/h2&gt;
+&lt;p&gt;在开始多人协作之前，我们先从一次最基础的本地提交开始。Git管理代码并不是直接把文件塞进版本历史，而是会经历三个区域。&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;Git object lifecycle&#34; loading=&#34;lazy&#34; src=&#34;https://kosnamm.github.io/posts/git_workflow/gitworkflow.svg&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;raw workspace&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;raw workspace就是我们平时直接编辑文件的工作区。你在IDE或编辑器里新增、删除、修改的内容，最开始都只存在于这个区域。此时Git可以感知到文件发生了变化，但这些变化还没有被纳入下一次提交。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;git workspace&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;git workspace通常也被称为暂存区，也就是&lt;code&gt;stage&lt;/code&gt;。当我们执行&lt;code&gt;git add&lt;/code&gt;时，Git会把指定文件的当前状态放入暂存区。暂存区的意义是让我们可以精确控制下一次commit到底包含哪些改动。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;commit&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;当我们执行&lt;code&gt;git commit&lt;/code&gt;时，Git会把暂存区中的内容保存成一个快照，并生成一个唯一的commit id。commit id可以理解为这次代码状态的身份证，后续的代码回退、版本比较、问题定位都会依赖它。&lt;/p&gt;
+&lt;p&gt;一次最小的本地提交流程如下：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# 查看当前仓库中发生了哪些变化&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;git status
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# 将所有变更加入暂存区&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;git add .
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# 创建一次提交&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;git commit -m &lt;span class=&#34;s2&#34;&gt;&amp;#34;init project&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这里的&lt;code&gt;git add .&lt;/code&gt;表示把当前目录下的全部变更都加入暂存区。它很方便，但在真实项目中也要谨慎使用：如果你临时修改了配置文件、日志文件或实验代码，它们也可能被一起加入commit。更稳妥的做法是先通过&lt;code&gt;git status&lt;/code&gt;确认变更，再使用更明确的路径。&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;git add src/main.go
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;git add README.md
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;如果你想检查某个文件具体改了什么，可以使用：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;git diff
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;如果文件已经被加入暂存区，想查看暂存区中的差异，可以使用：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;git diff --staged
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;code&gt;git commit -m&lt;/code&gt;后面的内容是commit message。它不是随便写给机器看的字符串，而是写给未来的自己和协作者看的上下文。一个好的commit message应该能说明这次提交完成了什么事情，例如：&lt;/p&gt;</description>
+    </item>
     <item>
       <title>Setup Docker on MacOS</title>
       <link>https://kosnamm.github.io/posts/docker-setup-on-macos/</link>
