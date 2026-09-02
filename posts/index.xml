@@ -11,8 +11,42 @@
     </image>
     <generator>Hugo -- 0.152.2</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 24 Mar 2026 23:38:04 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 03 Sep 2026 23:00:00 +0800</lastBuildDate>
     <atom:link href="https://kosnamm.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Agent-Assisted Workflow</title>
+      <link>https://kosnamm.github.io/posts/agent_assisted_workflow/</link>
+      <pubDate>Thu, 03 Sep 2026 23:00:00 +0800</pubDate>
+      <guid>https://kosnamm.github.io/posts/agent_assisted_workflow/</guid>
+      <description>&lt;p&gt;目前大多数 Agent 框架都围绕 ReAct、Reflection 或 Planning 等模式构建 Runtime。Agent 通过观察上下文、选择 Skill 和调用 Tool，逐步完成一个目标。执行路径并不是预先写死的，而是由模型根据当前状态动态决定。&lt;/p&gt;
+&lt;p&gt;这种方式适合开放式任务，但在需要稳定执行的场景中也会暴露出问题：一次工具调用失败、上下文丢失、外部服务超时，或者某个中间结果格式发生变化，都可能让 Agent 偏离原本的目标。单纯增加重试次数，通常只能处理网络抖动，无法处理状态已经不确定的情况。&lt;/p&gt;
+&lt;p&gt;另一种思路是使用 Workflow，把任务拆成一组由代码定义的步骤。Workflow 可以提供稳定的结构、输入输出契约和执行边界，但如果每个步骤和转移条件都被写死，它很容易演变成难以维护的固定脚本。&lt;/p&gt;
+&lt;p&gt;本文讨论一种折中的设计：Workflow 仍然由代码定义，Agent 不替代 Workflow，而是在执行发生偏差时介入，负责诊断、选择恢复动作和重新组织局部执行路径。&lt;/p&gt;
+&lt;h2 id=&#34;the-core-idea&#34;&gt;The Core Idea&lt;/h2&gt;
+&lt;p&gt;传统 Workflow 主要回答：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;What should happen next?
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Agent-Assisted Workflow 更关注：&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;What must be true before this workflow can continue?
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Workflow 负责定义结构和约束：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;步骤和阶段&lt;/li&gt;
+&lt;li&gt;输入输出契约&lt;/li&gt;
+&lt;li&gt;前置条件和后置条件&lt;/li&gt;
+&lt;li&gt;允许的 Tool 和 Skill&lt;/li&gt;
+&lt;li&gt;可恢复的错误类型&lt;/li&gt;
+&lt;li&gt;需要人工确认的高风险操作&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Agent 负责处理执行过程中的不确定性：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;判断失败原因&lt;/li&gt;
+&lt;li&gt;区分临时错误和状态错误&lt;/li&gt;
+&lt;li&gt;选择重试、替代 Tool 或补偿动作&lt;/li&gt;
+&lt;li&gt;从 checkpoint 恢复上下文&lt;/li&gt;
+&lt;li&gt;修复不完整的中间结果&lt;/li&gt;
+&lt;li&gt;生成局部恢复计划&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;因此，Workflow 依然是系统的控制边界，Agent 则是 Workflow 中具有自适应能力的异常处理器。&lt;/p&gt;</description>
+    </item>
     <item>
       <title>Git Workflow</title>
       <link>https://kosnamm.github.io/posts/git_workflow/</link>
