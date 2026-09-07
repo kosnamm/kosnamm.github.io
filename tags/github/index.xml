@@ -9,7 +9,7 @@
       <url>https://kosnamm.github.io/tn.png</url>
       <link>https://kosnamm.github.io/tn.png</link>
     </image>
-    <generator>Hugo -- 0.152.2</generator>
+    <generator>Hugo -- 0.148.2</generator>
     <language>en-us</language>
     <lastBuildDate>Tue, 24 Mar 2026 23:38:04 +0800</lastBuildDate>
     <atom:link href="https://kosnamm.github.io/tags/github/index.xml" rel="self" type="application/rss+xml" />
@@ -20,8 +20,7 @@
       <guid>https://kosnamm.github.io/posts/git_workflow/</guid>
       <description>&lt;p&gt;Git是一个免费开源的分布式版本控制系统，旨在快速高效地处理从大到小的各种项目。在现如今的软件开发领域，无论我们从事何种形式的开发，Git基本上都是版本管理的必然选择，Git将会伴随项目代码的整个生命周期。在这篇文章当中，我们不会详细解释每一个Git命令，而是基于Github Flow工作流程来介绍如何在多人合作的代码仓库当中，优雅地完成一次commit。&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;p&gt;工欲善其事，必先利其器。正式开始之前，先看一下如何下载Git。&lt;/p&gt;
-&lt;/blockquote&gt;
+&lt;p&gt;工欲善其事，必先利其器。正式开始之前，先看一下如何下载Git。&lt;/p&gt;&lt;/blockquote&gt;
 &lt;p&gt;&lt;strong&gt;MacOS&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;MacOS下推荐使用&lt;code&gt;brew&lt;/code&gt;下载Git：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;brew install git

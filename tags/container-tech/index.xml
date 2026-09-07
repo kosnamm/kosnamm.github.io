@@ -9,7 +9,7 @@
       <url>https://kosnamm.github.io/tn.png</url>
       <link>https://kosnamm.github.io/tn.png</link>
     </image>
-    <generator>Hugo -- 0.152.2</generator>
+    <generator>Hugo -- 0.148.2</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 01 Nov 2025 16:25:41 +0800</lastBuildDate>
     <atom:link href="https://kosnamm.github.io/tags/container-tech/index.xml" rel="self" type="application/rss+xml" />
@@ -19,16 +19,43 @@
       <pubDate>Sat, 01 Nov 2025 16:25:41 +0800</pubDate>
       <guid>https://kosnamm.github.io/posts/docker-setup-on-macos/</guid>
       <description>&lt;p&gt;在企业环境中，Docker Desktop 可能受到授权、策略或系统配置限制，导致 Docker daemon 无法正常启动。即使日常的镜像构建通常由 CI/CD 流水线完成，本地开发、调试和学习时仍然需要一个可用的 Docker runtime。&lt;/p&gt;
-&lt;p&gt;本文介绍如何使用 &lt;a href=&#34;https://github.com/abiosoft/colima&#34;&gt;Colima&lt;/a&gt; 在 macOS 上运行 Docker。Colima 基于 &lt;a href=&#34;https://github.com/lima-vm/lima&#34;&gt;Lima&lt;/a&gt; 启动轻量级 Linux 虚拟机，并在虚拟机中运行 Docker daemon；macOS 上的 Docker CLI 则通过 Colima 访问这个 daemon。&lt;/p&gt;
-&lt;h2 id=&#34;install&#34;&gt;Install&lt;/h2&gt;
-&lt;p&gt;首先安装 Docker CLI、Colima 和 Docker Compose：&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;brew install docker colima docker-compose
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这里安装的是 Docker 客户端，而不是 Docker Desktop。Colima 启动后会自动配置 Docker context，通常不需要额外设置 &lt;code&gt;DOCKER_HOST&lt;/code&gt;。&lt;/p&gt;
-&lt;h2 id=&#34;start-colima&#34;&gt;Start Colima&lt;/h2&gt;
-&lt;p&gt;使用 Docker runtime 启动 Colima：&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;colima start --runtime docker --cpu &lt;span class=&#34;m&#34;&gt;4&lt;/span&gt; --memory &lt;span class=&#34;m&#34;&gt;6&lt;/span&gt; --disk &lt;span class=&#34;m&#34;&gt;60&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;参数分别表示 CPU 核数、内存大小和虚拟磁盘大小。第一次启动时，Colima 会创建并初始化虚拟机，可能需要一些时间。&lt;/p&gt;
-&lt;p&gt;启动完成后，先确认 Docker daemon 是否可用：&lt;/p&gt;</description>
+&lt;p&gt;本文介绍两种在 macOS 上运行 Docker 的方案：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://rancherdesktop.io/&#34;&gt;Rancher Desktop&lt;/a&gt;：提供图形界面，可同时管理容器运行时和本地 Kubernetes，适合希望开箱即用、可视化配置的用户。&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/abiosoft/colima&#34;&gt;Colima&lt;/a&gt;：基于 &lt;a href=&#34;https://github.com/lima-vm/lima&#34;&gt;Lima&lt;/a&gt; 的轻量命令行方案，适合偏好 CLI、希望控制资源占用的用户。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;两者都会在 Linux 虚拟机中运行容器服务，并让 macOS 上的 Docker CLI 连接该服务。日常只需要使用 Docker 时，二选一即可，不建议同时启动，避免 Docker context 和资源占用相互干扰。&lt;/p&gt;
+&lt;h2 id=&#34;choose-a-runtime&#34;&gt;Choose a Runtime&lt;/h2&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+      &lt;tr&gt;
+          &lt;th&gt;方案&lt;/th&gt;
+          &lt;th&gt;更适合&lt;/th&gt;
+          &lt;th&gt;Docker CLI&lt;/th&gt;
+          &lt;th&gt;Kubernetes&lt;/th&gt;
+          &lt;th&gt;操作方式&lt;/th&gt;
+      &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Rancher Desktop&lt;/td&gt;
+          &lt;td&gt;希望通过界面管理配置和状态&lt;/td&gt;
+          &lt;td&gt;选择 Moby 后可用&lt;/td&gt;
+          &lt;td&gt;内置，可关闭&lt;/td&gt;
+          &lt;td&gt;GUI + &lt;code&gt;rdctl&lt;/code&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+          &lt;td&gt;Colima&lt;/td&gt;
+          &lt;td&gt;偏好轻量、脚本化的本地环境&lt;/td&gt;
+          &lt;td&gt;可用&lt;/td&gt;
+          &lt;td&gt;可选&lt;/td&gt;
+          &lt;td&gt;CLI&lt;/td&gt;
+      &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;如果希望获得接近 Docker Desktop 的桌面体验，可以优先选择 Rancher Desktop；如果只需要一个轻量 Docker daemon，可以继续使用 Colima。&lt;/p&gt;
+&lt;h2 id=&#34;rancher-desktop&#34;&gt;Rancher Desktop&lt;/h2&gt;
+&lt;p&gt;Rancher Desktop 是一个开源桌面应用，支持 macOS 的 Intel 和 Apple Silicon 设备。它提供两种容器引擎：&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>
