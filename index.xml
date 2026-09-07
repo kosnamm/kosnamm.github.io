@@ -89,7 +89,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;code&gt;git commit -m&lt;/code&gt;后面的内容是commit message。它不是随便写给机器看的字符串，而是写给未来的自己和协作者看的上下文。一个好的commit message应该能说明这次提交完成了什么事情，例如：&lt;/p&gt;</description>
     </item>
     <item>
-      <title>Run Docker on macOS with Colima</title>
+      <title>Run Docker on macOS with Rancher Desktop or Colima</title>
       <link>https://kosnamm.github.io/posts/docker-setup-on-macos/</link>
       <pubDate>Sat, 01 Nov 2025 16:25:41 +0800</pubDate>
       <guid>https://kosnamm.github.io/posts/docker-setup-on-macos/</guid>

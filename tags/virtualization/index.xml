@@ -14,7 +14,7 @@
     <lastBuildDate>Sat, 01 Nov 2025 16:25:41 +0800</lastBuildDate>
     <atom:link href="https://kosnamm.github.io/tags/virtualization/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Run Docker on macOS with Colima</title>
+      <title>Run Docker on macOS with Rancher Desktop or Colima</title>
       <link>https://kosnamm.github.io/posts/docker-setup-on-macos/</link>
       <pubDate>Sat, 01 Nov 2025 16:25:41 +0800</pubDate>
       <guid>https://kosnamm.github.io/posts/docker-setup-on-macos/</guid>
