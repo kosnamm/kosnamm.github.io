@@ -81,40 +81,12 @@ body:has(.room-home) .top-link {
         radial-gradient(circle at 52% 54%, rgba(var(--room-cyan), 0.07), transparent 28%);
 }
 
-.room-home__intro {
-    position: absolute;
-    z-index: 2;
-    top: clamp(24px, 5vw, 64px);
-    left: clamp(20px, 5vw, 76px);
-    max-width: 390px;
-    pointer-events: none;
-    text-shadow: 0 2px 30px rgba(0, 0, 0, 0.75);
-}
-
-.room-home__eyebrow,
 .room-panel__kicker {
     margin: 0 0 14px;
     color: rgb(var(--room-cyan));
     font: 650 0.66rem/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-}
-
-.room-home__intro h1 {
-    margin: 0;
-    color: #f8f6ff;
-    font-size: clamp(2.4rem, 5vw, 5rem);
-    font-weight: 640;
-    line-height: 0.92;
-    letter-spacing: -0.065em;
-}
-
-.room-home__intro > p:last-child {
-    max-width: 330px;
-    margin: 18px 0 0;
-    color: rgba(235, 232, 248, 0.68);
-    font-size: 0.84rem;
-    line-height: 1.6;
 }
 
 kbd {
@@ -163,7 +135,7 @@ kbd {
 .room-home__controls {
     position: absolute;
     z-index: 2;
-    right: clamp(18px, 3vw, 42px);
+    left: clamp(18px, 3vw, 42px);
     bottom: 24px;
     display: flex;
     gap: 18px;
@@ -465,16 +437,6 @@ kbd {
         min-height: max(620px, 100svh);
     }
 
-    .room-home__intro {
-        top: 20px;
-        left: 20px;
-    }
-
-    .room-home__intro h1 {
-        font-size: clamp(2.2rem, 12vw, 4rem);
-    }
-
-    .room-home__intro > p:last-child,
     .room-home__controls {
         display: none;
     }

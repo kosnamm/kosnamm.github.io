@@ -109,6 +109,39 @@ if (root && canvas) {
             return sprite;
         };
 
+        const makeWallTitle = () => {
+            const titleCanvas = document.createElement('canvas');
+            titleCanvas.width = 1024;
+            titleCanvas.height = 512;
+            const context = titleCanvas.getContext('2d');
+            context.clearRect(0, 0, titleCanvas.width, titleCanvas.height);
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.shadowBlur = 42;
+            context.shadowColor = '#2ce5ff';
+            context.fillStyle = '#dffcff';
+            context.font = '700 142px ui-monospace, SFMono-Regular, Menlo, monospace';
+            context.fillText("Matthew's", 512, 190);
+            context.shadowColor = '#705cff';
+            context.fillStyle = '#a89cff';
+            context.font = '700 154px ui-monospace, SFMono-Regular, Menlo, monospace';
+            context.fillText('Studio', 512, 342);
+
+            const texture = new THREE.CanvasTexture(titleCanvas);
+            texture.colorSpace = THREE.SRGBColorSpace;
+            const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: true,
+                depthWrite: false,
+                toneMapped: false
+            });
+            const title = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.85), material);
+            title.position.set(-5.63, 3.28, -2.7);
+            title.rotation.y = Math.PI / 2;
+            title.renderOrder = 8;
+            return title;
+        };
+
         const addObstacle = (minX, maxX, minZ, maxZ) => {
             obstacles.push({ minX, maxX, minZ, maxZ });
         };
@@ -180,6 +213,14 @@ if (root && canvas) {
         box(room, [12.1, 0.045, 0.045], [0, 5.18, -4.43], edgeMaterial, { castShadow: false });
         box(room, [0.045, 0.045, 9.5], [-5.62, 5.18, 0], basic(palette.cyan, 0.88), { castShadow: false });
         box(room, [0.06, 0.06, 5.1], [-5.61, 2.48, -4.42], basic(palette.pink, 0.75), { rotation: [0, 0, Math.PI / 2], castShadow: false });
+
+        box(room, [0.055, 2.3, 3.75], [-5.67, 3.25, -2.7], standard(0x0a0d1a, {
+            roughness: 0.35,
+            metalness: 0.22,
+            emissive: palette.violet,
+            emissiveIntensity: 0.08
+        }), { castShadow: false });
+        room.add(makeWallTitle());
 
         const rug = box(room, [4.8, 0.035, 3.35], [2.1, 0.01, 1.8], standard(0x211b3d, { roughness: 1 }));
         rug.rotation.y = -0.08;
@@ -256,7 +297,7 @@ if (root && canvas) {
             }));
         }
         const aboutLabel = makeLabel('ABOUT', '#86ff78');
-        aboutLabel.position.set(-4.9, 4.25, 1.08);
+        aboutLabel.position.set(-4.9, 4.05, 2.05);
         aboutLabel.rotation.y = Math.PI / 2;
         shelf.add(aboutLabel);
         addObstacle(-5.55, -4.45, -0.35, 2.55);
@@ -369,7 +410,7 @@ if (root && canvas) {
             const aspect = width / height;
             // Keep the room as a centered object inside a larger digital-space canvas.
             // Portrait layouts retain a closer view so the character remains usable.
-            const viewHeight = aspect < 1 ? 13.2 / aspect : 18;
+            const viewHeight = aspect < 1 ? 14.5 / aspect : 21;
             camera.left = -viewHeight * aspect * 0.5;
             camera.right = viewHeight * aspect * 0.5;
             camera.top = viewHeight * 0.5;
