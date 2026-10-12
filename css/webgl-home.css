@@ -1,13 +1,25 @@
 .main:has(.room-home) {
     max-width: none;
+    min-height: 100svh;
     padding: 0;
+}
+
+html:has(.room-home),
+body:has(.room-home) {
+    background: #050610;
+}
+
+body:has(.room-home) .header,
+body:has(.room-home) .footer,
+body:has(.room-home) .top-link {
+    display: none;
 }
 
 .room-home {
     --room-accent: 112, 92, 255;
     --room-cyan: 44, 229, 255;
     position: relative;
-    min-height: calc(100svh - var(--header-height));
+    min-height: 100svh;
     overflow: hidden;
     isolation: isolate;
     color: #f6f3ff;
@@ -450,7 +462,7 @@ kbd {
 
 @media (max-width: 800px) {
     .room-home {
-        min-height: max(620px, calc(100svh - 120px));
+        min-height: max(620px, 100svh);
     }
 
     .room-home__intro {
