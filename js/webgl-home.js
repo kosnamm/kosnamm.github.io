@@ -137,7 +137,8 @@ if (root && canvas) {
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFShadowMap;
 
-        scene.background = new THREE.Color(0x060711);
+        renderer.setClearColor(0x000000, 0);
+        scene.background = null;
         scene.fog = new THREE.FogExp2(0x060711, 0.025);
 
         const hemi = new THREE.HemisphereLight(0x8297ff, 0x17101f, 1.45);
@@ -366,7 +367,9 @@ if (root && canvas) {
             const width = Math.max(root.clientWidth, 1);
             const height = Math.max(root.clientHeight, 1);
             const aspect = width / height;
-            const viewHeight = aspect < 1 ? 13.2 / aspect : 10.4;
+            // Keep the room as a centered object inside a larger digital-space canvas.
+            // Portrait layouts retain a closer view so the character remains usable.
+            const viewHeight = aspect < 1 ? 13.2 / aspect : 18;
             camera.left = -viewHeight * aspect * 0.5;
             camera.right = viewHeight * aspect * 0.5;
             camera.top = viewHeight * 0.5;

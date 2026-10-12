@@ -11,7 +11,35 @@
     overflow: hidden;
     isolation: isolate;
     color: #f6f3ff;
-    background: #060711;
+    background: #050610;
+}
+
+.room-home::before,
+.room-home::after {
+    position: absolute;
+    inset: 0;
+    z-index: -3;
+    pointer-events: none;
+    content: "";
+}
+
+.room-home::before {
+    background:
+        radial-gradient(ellipse 42% 28% at 52% 72%, rgba(var(--room-accent), 0.2), transparent 72%),
+        radial-gradient(circle at 50% 46%, rgba(var(--room-cyan), 0.07), transparent 32%),
+        radial-gradient(circle at 78% 25%, rgba(255, 79, 161, 0.07), transparent 22%),
+        linear-gradient(160deg, #07091a 0%, #04050d 52%, #070719 100%);
+}
+
+.room-home::after {
+    opacity: 0.32;
+    background-image:
+        linear-gradient(rgba(117, 111, 255, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(117, 111, 255, 0.08) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255, 255, 255, 0.24) 0 1px, transparent 1.5px);
+    background-position: center, center, 0 0;
+    background-size: 72px 72px, 72px 72px, 94px 94px;
+    mask-image: radial-gradient(ellipse 70% 66% at center, black, transparent 78%);
 }
 
 .room-home__canvas,
@@ -37,9 +65,8 @@
 .room-home__fallback {
     z-index: -2;
     background:
-        radial-gradient(circle at 65% 35%, rgba(var(--room-accent), 0.22), transparent 33%),
-        radial-gradient(circle at 30% 70%, rgba(var(--room-cyan), 0.12), transparent 28%),
-        linear-gradient(145deg, #0b0d20, #05050b 70%);
+        radial-gradient(ellipse 33% 17% at 52% 75%, rgba(var(--room-accent), 0.18), transparent 74%),
+        radial-gradient(circle at 52% 54%, rgba(var(--room-cyan), 0.07), transparent 28%);
 }
 
 .room-home__intro {
