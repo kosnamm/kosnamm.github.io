@@ -524,6 +524,32 @@ if (root && canvas) {
         head.castShadow = head.receiveShadow = true;
         headPivot.add(head);
 
+        // The complete headset is attached to the head, including its boom mic.
+        const headset = new THREE.Group();
+        headPivot.add(headset);
+        const headsetShell = standard(0x151927, { roughness: .38, metalness: .32 });
+        const headsetPadding = standard(0x292735, { roughness: .95 });
+        const bandPoints = [];
+        for (let i = 0; i <= 24; i++) {
+            const angle = Math.PI * i / 24;
+            bandPoints.push(new THREE.Vector3(Math.cos(angle) * .425, .31 + Math.sin(angle) * .46, .025));
+        }
+        const band = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(bandPoints), 32, .048, 10, false), headsetShell);
+        band.castShadow = true;
+        headset.add(band);
+        [-1, 1].forEach(side => {
+            rounded(headset, [.12, .31, .25], [side * .365, .29, .025], headsetPadding, .05);
+            rounded(headset, [.15, .35, .29], [side * .445, .29, .025], headsetShell, .06);
+            const lightRing = new THREE.Mesh(new THREE.TorusGeometry(.108, .013, 8, 32), basic(palette.cyan));
+            lightRing.rotation.y = Math.PI / 2;
+            lightRing.scale.x = 1.15;
+            lightRing.position.set(side * .525, .29, .025);
+            headset.add(lightRing);
+        });
+        rod(headset, [.47, .18, .12], [.43, .1, .35], .019, headsetShell);
+        rod(headset, [.43, .1, .35], [.24, .09, .45], .019, headsetShell);
+        rounded(headset, [.12, .06, .07], [.22, .09, .45], headsetPadding, .02);
+
         const makeLimb = (x, y, length, radius) => {
             const pivot = new THREE.Group();
             pivot.position.set(x, y, 0);
