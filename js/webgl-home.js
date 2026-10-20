@@ -396,7 +396,11 @@ if (root && canvas) {
             pillow.rotation.y = -.08;
         });
         rounded(bed, [.7, .23, .74], [-2.6, 1.13, -3.7], fabric(0x12392f), .08, .4);
-        addObstacle(-4.05, -.55, -4.5, -.65);
+        // Fit the bed into the corner: headboard against the left wall,
+        // far side against the rear wall, clear of the desk's back edge.
+        bed.scale.z = .87;
+        bed.position.set(-1.77, 0, -.66);
+        addObstacle(-5.73, -2.32, -4.64, -1.22);
         // Small floating bookshelf above the headboard, with individual spines.
         const shelf = new THREE.Group(); scene.add(shelf);
         [2.9, 3.75, 4.62].forEach((y, row) => {
