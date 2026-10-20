@@ -524,54 +524,87 @@ if (root && canvas) {
         head.castShadow = head.receiveShadow = true;
         headPivot.add(head);
 
-        // The complete headset is attached to the head, including its boom mic.
-        const headset = new THREE.Group();
-        headPivot.add(headset);
-        const headsetShell = standard(0x151927, { roughness: .38, metalness: .32 });
-        const headsetPadding = standard(0x292735, { roughness: .95 });
+        // XM6-inspired matte shell, broad padded band and oval over-ear cups.
+        const headset = new THREE.Group(); headPivot.add(headset);
+        const headsetShell = standard(0x292a2d, { roughness: .72, metalness: .03 });
+        const headsetPadding = standard(0x111216, { roughness: .97 });
         const bandPoints = [];
-        for (let i = 0; i <= 24; i++) {
-            const angle = Math.PI * i / 24;
-            bandPoints.push(new THREE.Vector3(Math.cos(angle) * .425, .31 + Math.sin(angle) * .46, .025));
+        for (let i = 0; i <= 32; i++) {
+            const angle = Math.PI * i / 32;
+            bandPoints.push(new THREE.Vector3(Math.cos(angle) * .405, .34 + Math.sin(angle) * .405, 0));
         }
-        const band = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(bandPoints), 32, .048, 10, false), headsetShell);
-        band.castShadow = true;
-        headset.add(band);
+        const bandCurve = new THREE.CatmullRomCurve3(bandPoints);
+        const bandGeometry = new THREE.TubeGeometry(bandCurve, 48, .031, 12, false);
+        bandGeometry.scale(1, 1, 2.6);
+        const band = new THREE.Mesh(bandGeometry, headsetShell);
+        band.position.z = .025; band.castShadow = true; headset.add(band);
+        const logoMap = texture(256, 128, c => {
+            c.fillStyle = '#292a2d'; c.fillRect(0, 0, 256, 128);
+            c.fillStyle = '#b2a58c'; c.font = 'bold 52px Georgia, serif';
+            c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('SONY', 128, 64);
+        });
         [-1, 1].forEach(side => {
-            rounded(headset, [.12, .31, .25], [side * .365, .29, .025], headsetPadding, .05);
-            rounded(headset, [.15, .35, .29], [side * .445, .29, .025], headsetShell, .06);
-            const lightRing = new THREE.Mesh(new THREE.TorusGeometry(.108, .013, 8, 32), basic(palette.cyan));
-            lightRing.rotation.y = Math.PI / 2;
-            lightRing.scale.x = 1.15;
-            lightRing.position.set(side * .525, .29, .025);
-            headset.add(lightRing);
+            const cup = new THREE.Group();
+            cup.position.set(side * .411, .285, .025);
+            cup.rotation.z = -side * .07;
+            headset.add(cup);
+            const pad = new THREE.Mesh(new THREE.SphereGeometry(1, 28, 24), headsetPadding);
+            pad.scale.set(.068, .202, .156); pad.position.x = -side * .035;
+            pad.castShadow = true; cup.add(pad);
+            const shell = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), headsetShell);
+            shell.scale.set(.091, .208, .16); shell.position.x = side * .027;
+            shell.castShadow = shell.receiveShadow = true; cup.add(shell);
+            rounded(headset, [.045, .18, .06], [side * .402, .48, .025], headsetShell, .015);
+            const badge = new THREE.Mesh(new THREE.PlaneGeometry(.16, .08),
+                new THREE.MeshBasicMaterial({ map: logoMap }));
+            badge.rotation.y = side * Math.PI / 2;
+            badge.position.set(side * .112, .06, 0); cup.add(badge);
+            // Recessed microphone opening; no gaming boom or RGB ring.
+            const vent = new THREE.Mesh(new THREE.CircleGeometry(.009, 12), basic(0x08090b));
+            vent.rotation.y = side * Math.PI / 2;
+            vent.position.set(side * .112, -.055, .035); cup.add(vent);
         });
-        rod(headset, [.47, .18, .12], [.43, .1, .35], .019, headsetShell);
-        rod(headset, [.43, .1, .35], [.24, .09, .45], .019, headsetShell);
-        rounded(headset, [.12, .06, .07], [.22, .09, .45], headsetPadding, .02);
 
-        const makeLimb = (x, y, length, radius) => {
-            const pivot = new THREE.Group();
-            pivot.position.set(x, y, 0);
-            const limb = new THREE.Mesh(new THREE.CapsuleGeometry(radius, length, 8, 20), mannequinMaterial);
-            limb.position.y = -length * .5;
-            limb.castShadow = limb.receiveShadow = true;
-            pivot.add(limb); playerBody.add(pivot);
-            return pivot;
+        const makeArm = (side) => {
+            const shoulder = new THREE.Group(); shoulder.position.set(side * .34, 1.62, 0);
+            playerBody.add(shoulder);
+            const upper = new THREE.Mesh(new THREE.CapsuleGeometry(.142, .37, 8, 20), mannequinMaterial);
+            upper.position.y = -.185; upper.castShadow = true; shoulder.add(upper);
+            const elbow = new THREE.Group(); elbow.position.y = -.37; shoulder.add(elbow);
+            const forearm = new THREE.Mesh(new THREE.CapsuleGeometry(.13, .42, 8, 20), mannequinMaterial);
+            forearm.position.y = -.21; forearm.castShadow = true; elbow.add(forearm);
+            shoulder.userData.elbow = elbow;
+            return shoulder;
         };
-        const leftArm = makeLimb(-.34, 1.62, .86, .145);
-        const rightArm = makeLimb(.34, 1.62, .86, .145);
-        leftArm.rotation.z = -.14;
-        rightArm.rotation.z = .14;
-        const leftLeg = makeLimb(-.21, .8, .6, .16);
-        const rightLeg = makeLimb(.21, .8, .6, .16);
-        [leftLeg, rightLeg].forEach(leg => {
+        const leftArm = makeArm(-1), rightArm = makeArm(1);
+        const makeLeg = (side) => {
+            const hip = new THREE.Group(); hip.position.set(side * .21, .8, 0); playerBody.add(hip);
+            const thigh = new THREE.Mesh(new THREE.CapsuleGeometry(.155, .34, 8, 20), mannequinMaterial);
+            thigh.position.y = -.17; thigh.castShadow = true; hip.add(thigh);
+            const knee = new THREE.Group(); knee.position.y = -.34; hip.add(knee);
+            const shin = new THREE.Mesh(new THREE.CapsuleGeometry(.14, .34, 8, 20), mannequinMaterial);
+            shin.position.y = -.17; shin.castShadow = true; knee.add(shin);
+            const ankle = new THREE.Group(); ankle.position.y = -.34; knee.add(ankle);
             const foot = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 16), mannequinMaterial);
-            foot.scale.set(.17, .13, .24);
-            foot.position.set(0, -.66, .08);
-            foot.castShadow = foot.receiveShadow = true;
-            leg.add(foot);
-        });
+            foot.scale.set(.17, .13, .24); foot.position.set(0, -.01, .08);
+            foot.castShadow = foot.receiveShadow = true; ankle.add(foot);
+            return { hip, knee, ankle };
+        };
+        const leftLeg = makeLeg(-1), rightLeg = makeLeg(1);
+        // Two-link leg placement keeps the supporting foot near the floor.
+        const poseLeg = (leg, phase, weight, bodyHeight) => {
+            const cycle = ((phase / (Math.PI * 2)) % 1 + 1) % 1;
+            const stance = cycle < .6;
+            const t = stance ? cycle / .6 : (cycle - .6) / .4;
+            const footZ = (stance ? .25 - .5 * t : -.25 * Math.cos(Math.PI * t)) * weight;
+            const lift = stance ? 0 : Math.sin(Math.PI * t) * .16 * weight;
+            const down = .66 + bodyHeight - lift;
+            const reach = Math.min(.679, Math.hypot(down, footZ));
+            const bend = 2 * Math.acos(reach / .68);
+            leg.hip.rotation.x = Math.atan2(-footZ, down) - bend / 2;
+            leg.knee.rotation.x = bend;
+            leg.ankle.rotation.x = -leg.hip.rotation.x - bend + (stance ? Math.sin(Math.PI * t) * .06 : -.1 * Math.sin(Math.PI * t)) * weight;
+        };
 
         const playerShadow = new THREE.Mesh(new THREE.CircleGeometry(0.52, 24), basic(0x000000, 0.28));
         playerShadow.rotation.x = -Math.PI / 2;
@@ -589,6 +622,8 @@ if (root && canvas) {
         let nearbyZone = null;
         let panelOpen = false;
         let walkPhase = 0;
+        let gaitWeight = 0;
+        const previousPosition = new THREE.Vector3();
         let lastFocusedElement = null;
 
         const resize = () => {
@@ -728,10 +763,11 @@ if (root && canvas) {
                 if (keys.has('arrowleft') || keys.has('a')) moveDirection.sub(movementRight);
             }
 
-            const moving = moveDirection.lengthSq() > 0;
-            if (moving) {
+            const wantsToMove = moveDirection.lengthSq() > 0;
+            previousPosition.copy(player.position);
+            if (wantsToMove) {
                 moveDirection.normalize();
-                const speed = 2.45;
+                const speed = 1.85;
                 nextPosition.copy(player.position);
                 nextPosition.x += moveDirection.x * speed * delta;
                 if (!isBlocked(nextPosition.x, player.position.z)) player.position.x = nextPosition.x;
@@ -741,24 +777,34 @@ if (root && canvas) {
 
                 const targetRotation = Math.atan2(moveDirection.x, moveDirection.z);
                 player.rotation.y = lerpAngle(player.rotation.y, targetRotation, Math.min(delta * 10, 1));
-                walkPhase += delta * 10;
+
             }
 
-            const swing = moving ? Math.sin(walkPhase) * 0.48 : 0;
-            const wobble = reducedMotion ? 0 : Math.sin(elapsed * 2.1) * (moving ? 0.045 : 0.018);
-            playerBody.position.y = moving && !reducedMotion ? Math.abs(Math.sin(walkPhase * 2)) * 0.07 : 0;
-            playerBody.rotation.z += ((moving ? -moveDirection.x * 0.12 : wobble) - playerBody.rotation.z) * 0.12;
-            playerBody.rotation.x += ((moving ? moveDirection.z * 0.08 : 0) - playerBody.rotation.x) * 0.12;
-            // Arms lag behind the step; the head gently counterbalances the torso.
-            const armSwing = moving && !reducedMotion ? Math.sin(walkPhase - .65) * .55 : 0;
-            leftArm.rotation.x += (armSwing - leftArm.rotation.x) * .1;
-            rightArm.rotation.x += (-armSwing - rightArm.rotation.x) * .1;
-            leftArm.rotation.z = -.14 - (reducedMotion ? 0 : Math.sin(elapsed * 2.4) * .035);
-            rightArm.rotation.z = .14 + (reducedMotion ? 0 : Math.sin(elapsed * 2.4 + .5) * .035);
-            headPivot.rotation.z = -playerBody.rotation.z * .45;
-            headPivot.rotation.x = moving && !reducedMotion ? Math.sin(walkPhase - .3) * .045 : 0;
-            leftLeg.rotation.x += (-swing * 0.65 - leftLeg.rotation.x) * 0.2;
-            rightLeg.rotation.x += (swing * 0.65 - rightLeg.rotation.x) * 0.2;
+            const travelled = player.position.distanceTo(previousPosition);
+            const moving = travelled > .00001;
+            const damping = 1 - Math.exp(-delta * 9);
+            gaitWeight += ((moving ? 1 : 0) - gaitWeight) * damping;
+            // Advance by actual distance, so a blocked character stops stepping.
+            walkPhase += travelled * Math.PI * 2 / (.92 * 1.0);
+            const motion = reducedMotion ? 0 : gaitWeight;
+            const idle = reducedMotion ? 0 : Math.sin(elapsed * 1.7) * .009 * (1 - gaitWeight);
+            const bodyHeight = (1 - Math.cos(walkPhase * 2)) * .014 * motion;
+            playerBody.position.y = bodyHeight;
+            playerBody.position.x = Math.sin(walkPhase) * .035 * motion;
+            playerBody.rotation.z += ((Math.sin(walkPhase - .3) * .085 * motion + idle) - playerBody.rotation.z) * damping;
+            playerBody.rotation.x += ((-.065 * motion + Math.sin(walkPhase * 2 - .6) * .025 * motion) - playerBody.rotation.x) * damping;
+            // Soft, delayed elbows and head retain the loose mannequin character.
+            const armSwing = Math.cos(walkPhase - .7) * .38 * motion;
+            leftArm.rotation.x += (armSwing - .08 * motion - leftArm.rotation.x) * damping * .65;
+            rightArm.rotation.x += (-armSwing - .08 * motion - rightArm.rotation.x) * damping * .65;
+            leftArm.rotation.z = -.1 - .035 * motion * Math.sin(walkPhase - .9);
+            rightArm.rotation.z = .1 - .035 * motion * Math.sin(walkPhase - .9);
+            leftArm.userData.elbow.rotation.x = -.12 - (1 + Math.sin(walkPhase - 1.1)) * .12 * motion;
+            rightArm.userData.elbow.rotation.x = -.12 - (1 - Math.sin(walkPhase - 1.1)) * .12 * motion;
+            headPivot.rotation.z += ((-Math.sin(walkPhase - .9) * .065 * motion) - headPivot.rotation.z) * damping * .55;
+            headPivot.rotation.x += ((.035 * motion + Math.sin(walkPhase * 2 - 1) * .025 * motion) - headPivot.rotation.x) * damping * .55;
+            poseLeg(leftLeg, walkPhase, motion, bodyHeight);
+            poseLeg(rightLeg, walkPhase + Math.PI, motion, bodyHeight);
 
             let nearest = null;
             let nearestDistance = Infinity;
