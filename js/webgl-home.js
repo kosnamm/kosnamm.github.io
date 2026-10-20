@@ -496,52 +496,52 @@ if (root && canvas) {
 
         const player = new THREE.Group();
         player.position.set(-.6, 0, 2.4);
-        player.scale.setScalar(.72);
+        player.scale.setScalar(.92);
         scene.add(player);
 
         const playerBody = new THREE.Group();
         player.add(playerBody);
-        const suitMaterial = standard(0xf1ecff, { roughness: 0.82 });
-        const skinMaterial = standard(0xffc7a5, { roughness: 0.88 });
-        const accentMaterial = standard(palette.violet, { emissive: palette.violet, emissiveIntensity: 0.35 });
-
-        const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.38, 0.72, 5, 10), suitMaterial);
-        torso.position.y = 1.35;
-        torso.castShadow = true;
+        // A smooth, unadorned soft-bodied mannequin, built from original geometry.
+        const mannequinMaterial = standard(0xf2f0e8, { roughness: .78, metalness: 0 });
+        const profile = [
+            [0, .72], [.24, .72], [.39, .82], [.46, 1.02], [.45, 1.22],
+            [.39, 1.46], [.29, 1.68], [.19, 1.8], [0, 1.82]
+        ].map(([r, y]) => new THREE.Vector2(r, y));
+        const bodyCurve = new THREE.SplineCurve(profile);
+        const torso = new THREE.Mesh(new THREE.LatheGeometry(bodyCurve.getPoints(40), 32), mannequinMaterial);
+        torso.castShadow = torso.receiveShadow = true;
         playerBody.add(torso);
+        const headPivot = new THREE.Group();
+        headPivot.position.set(0, 1.86, 0);
+        playerBody.add(headPivot);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(.37, 32, 24), mannequinMaterial);
+        head.position.set(0, .31, .025);
+        head.scale.set(1, 1.06, .98);
+        head.castShadow = head.receiveShadow = true;
+        headPivot.add(head);
 
-        const head = new THREE.Mesh(new THREE.SphereGeometry(0.4, 12, 10), skinMaterial);
-        head.scale.y = 1.08;
-        head.position.y = 2.08;
-        head.castShadow = true;
-        playerBody.add(head);
-
-        const hair = new THREE.Mesh(new THREE.SphereGeometry(0.42, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.52), accentMaterial);
-        hair.position.y = 2.2;
-        hair.rotation.x = -0.08;
-        playerBody.add(hair);
-
-        [-0.14, 0.14].forEach((x) => {
-            const eye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), basic(0x141420));
-            eye.position.set(x, 2.11, 0.37);
-            playerBody.add(eye);
-        });
-
-        const makeLimb = (x, y, length, material) => {
+        const makeLimb = (x, y, length, radius) => {
             const pivot = new THREE.Group();
             pivot.position.set(x, y, 0);
-            const limb = new THREE.Mesh(new THREE.CapsuleGeometry(0.115, length, 4, 8), material);
-            limb.position.y = -length * 0.5;
-            limb.castShadow = true;
-            pivot.add(limb);
-            playerBody.add(pivot);
+            const limb = new THREE.Mesh(new THREE.CapsuleGeometry(radius, length, 8, 20), mannequinMaterial);
+            limb.position.y = -length * .5;
+            limb.castShadow = limb.receiveShadow = true;
+            pivot.add(limb); playerBody.add(pivot);
             return pivot;
         };
-
-        const leftArm = makeLimb(-0.5, 1.7, 0.68, skinMaterial);
-        const rightArm = makeLimb(0.5, 1.7, 0.68, skinMaterial);
-        const leftLeg = makeLimb(-0.2, 0.9, 0.62, accentMaterial);
-        const rightLeg = makeLimb(0.2, 0.9, 0.62, accentMaterial);
+        const leftArm = makeLimb(-.34, 1.62, .86, .145);
+        const rightArm = makeLimb(.34, 1.62, .86, .145);
+        leftArm.rotation.z = -.14;
+        rightArm.rotation.z = .14;
+        const leftLeg = makeLimb(-.21, .8, .6, .16);
+        const rightLeg = makeLimb(.21, .8, .6, .16);
+        [leftLeg, rightLeg].forEach(leg => {
+            const foot = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 16), mannequinMaterial);
+            foot.scale.set(.17, .13, .24);
+            foot.position.set(0, -.66, .08);
+            foot.castShadow = foot.receiveShadow = true;
+            leg.add(foot);
+        });
 
         const playerShadow = new THREE.Mesh(new THREE.CircleGeometry(0.52, 24), basic(0x000000, 0.28));
         playerShadow.rotation.x = -Math.PI / 2;
@@ -579,7 +579,7 @@ if (root && canvas) {
         };
 
         const isBlocked = (x, z) => {
-            const radius = 0.34;
+            const radius = 0.43;
             if (x < -5.3 || x > 5.3 || z < -4.15 || z > 4.65) return true;
             return obstacles.some((obstacle) => (
                 x > obstacle.minX - radius && x < obstacle.maxX + radius &&
@@ -714,13 +714,19 @@ if (root && canvas) {
                 walkPhase += delta * 10;
             }
 
-            const swing = moving ? Math.sin(walkPhase) * 0.58 : 0;
+            const swing = moving ? Math.sin(walkPhase) * 0.48 : 0;
             const wobble = reducedMotion ? 0 : Math.sin(elapsed * 2.1) * (moving ? 0.045 : 0.018);
             playerBody.position.y = moving && !reducedMotion ? Math.abs(Math.sin(walkPhase * 2)) * 0.07 : 0;
             playerBody.rotation.z += ((moving ? -moveDirection.x * 0.12 : wobble) - playerBody.rotation.z) * 0.12;
             playerBody.rotation.x += ((moving ? moveDirection.z * 0.08 : 0) - playerBody.rotation.x) * 0.12;
-            leftArm.rotation.x += (swing - leftArm.rotation.x) * 0.2;
-            rightArm.rotation.x += (-swing - rightArm.rotation.x) * 0.2;
+            // Arms lag behind the step; the head gently counterbalances the torso.
+            const armSwing = moving && !reducedMotion ? Math.sin(walkPhase - .65) * .55 : 0;
+            leftArm.rotation.x += (armSwing - leftArm.rotation.x) * .1;
+            rightArm.rotation.x += (-armSwing - rightArm.rotation.x) * .1;
+            leftArm.rotation.z = -.14 - (reducedMotion ? 0 : Math.sin(elapsed * 2.4) * .035);
+            rightArm.rotation.z = .14 + (reducedMotion ? 0 : Math.sin(elapsed * 2.4 + .5) * .035);
+            headPivot.rotation.z = -playerBody.rotation.z * .45;
+            headPivot.rotation.x = moving && !reducedMotion ? Math.sin(walkPhase - .3) * .045 : 0;
             leftLeg.rotation.x += (-swing * 0.65 - leftLeg.rotation.x) * 0.2;
             rightLeg.rotation.x += (swing * 0.65 - rightLeg.rotation.x) * 0.2;
 
