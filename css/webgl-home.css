@@ -503,3 +503,16 @@ kbd {
         animation: none;
     }
 }
+
+/* Reference room: quiet midnight surround, with light concentrated on the diorama. */
+.room-home::before {
+    background:
+        radial-gradient(ellipse 35% 18% at 52% 85%, rgba(53, 15, 156, .27), transparent 80%),
+        radial-gradient(ellipse 45% 30% at 28% 100%, rgba(9, 19, 107, .22), transparent 80%),
+        #04040a;
+}
+.room-home::after { display: none; }
+.room-home__fallback { background: radial-gradient(ellipse 32% 16% at 50% 80%, #1b0b4233, transparent 80%); }
+@media (prefers-reduced-motion: reduce) {
+    .room-home__canvas { transition: none; }
+}
