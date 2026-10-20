@@ -220,7 +220,7 @@ if (root && canvas) {
             const map = texture(1024, 512, (c) => {
                 c.textAlign = 'center'; c.textBaseline = 'middle';
                 c.font = 'italic 112px Arial, sans-serif'; c.lineWidth = 2;
-                ['FOR GAMERS.', 'BY GAMERS.'].forEach((line, i) => {
+                ["Matthew’s", 'Studio'].forEach((line, i) => {
                     c.shadowColor = '#6e69ff'; c.shadowBlur = 22;
                     c.strokeStyle = '#8e8bff'; c.strokeText(line, 512, 165 + i * 145);
                     c.shadowBlur = 5; c.strokeStyle = '#ddfaff'; c.strokeText(line, 512, 165 + i * 145);
@@ -237,7 +237,20 @@ if (root && canvas) {
         };
 
         const registerZone = ({ id, label, kicker, group, position, radius = 1.85, color }) => {
-            const ringMaterial = basic(color, 0.08);
+            const ringMaterial = basic(color, 0.14);
+            const anchors = {
+                blog: [-4.6, 2.95, 1.2], about: [-4.2, 5.15, -4.25],
+                gallery: [.55, 4.75, -4.3], timeline: [4.2, 3.15, -3.95]
+            };
+            const tag = document.createElement('button');
+            tag.type = 'button';
+            tag.className = 'room-home__hotspot';
+            tag.textContent = `${id.toUpperCase()} ↗`;
+            tag.setAttribute('aria-label', label);
+            tag.style.setProperty('--hotspot-color', `#${new THREE.Color(color).getHexString()}`);
+            tag.addEventListener('click', () => openPanel(id));
+            root.appendChild(tag);
+            const anchor = new THREE.Vector3(...anchors[id]);
             ringMaterial.side = THREE.DoubleSide;
             const marker = new THREE.Mesh(new THREE.RingGeometry(0.52, 0.66, 32), ringMaterial);
             marker.position.set(position.x, 0.025, position.z);
@@ -250,7 +263,7 @@ if (root && canvas) {
                 clickTargets.push(child);
             });
 
-            interactiveZones.push({ id, label, kicker, group, position, radius, marker, color });
+            interactiveZones.push({ id, label, kicker, group, position, radius, marker, color, tag, anchor });
         };
 
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.8));
@@ -483,7 +496,7 @@ if (root && canvas) {
 
         const player = new THREE.Group();
         player.position.set(-.6, 0, 2.4);
-        player.scale.setScalar(.42);
+        player.scale.setScalar(.72);
         scene.add(player);
 
         const playerBody = new THREE.Group();
@@ -542,6 +555,7 @@ if (root && canvas) {
         const movementRight = new THREE.Vector3(1, 0, -1).normalize();
         const moveDirection = new THREE.Vector3();
         const nextPosition = new THREE.Vector3();
+        const screenPosition = new THREE.Vector3();
         let nearbyZone = null;
         let panelOpen = false;
         let walkPhase = 0;
@@ -713,9 +727,12 @@ if (root && canvas) {
             let nearest = null;
             let nearestDistance = Infinity;
             interactiveZones.forEach((zone, index) => {
+                screenPosition.copy(zone.anchor).project(camera);
+                zone.tag.style.left = `${(screenPosition.x + 1) * root.clientWidth / 2}px`;
+                zone.tag.style.top = `${(1 - screenPosition.y) * root.clientHeight / 2}px`;
                 const distance = player.position.distanceTo(zone.position);
                 const active = distance < zone.radius;
-                zone.marker.material.opacity += ((active ? 0.4 : 0.04) - zone.marker.material.opacity) * 0.12;
+                zone.marker.material.opacity += ((active ? 0.5 : 0.12) - zone.marker.material.opacity) * 0.12;
                 const pulse = reducedMotion ? 1 : 1 + Math.sin(elapsed * 2.3 + index) * 0.08;
                 zone.marker.scale.setScalar(active ? 1.18 * pulse : pulse);
                 zone.marker.rotation.z += delta * (active ? 0.75 : 0.22);

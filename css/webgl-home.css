@@ -516,3 +516,28 @@ kbd {
 @media (prefers-reduced-motion: reduce) {
     .room-home__canvas { transition: none; }
 }
+
+.room-home__hotspot {
+    position: absolute;
+    z-index: 2;
+    transform: translate(-50%, -100%);
+    padding: 7px 11px;
+    border: 1px solid color-mix(in srgb, var(--hotspot-color) 55%, transparent);
+    border-radius: 7px;
+    background: rgba(5, 7, 18, .86);
+    color: var(--hotspot-color);
+    font: 600 11px/1.2 ui-monospace, monospace;
+    letter-spacing: .08em;
+    cursor: pointer;
+    box-shadow: 0 3px 18px #0006;
+}
+.room-home__hotspot:hover,
+.room-home__hotspot:focus-visible {
+    outline: 2px solid var(--hotspot-color);
+    outline-offset: 3px;
+    background: #17152b;
+}
+.room-home.is-panel-open .room-home__hotspot { visibility: hidden; }
+@media (max-width: 600px) {
+    .room-home__hotspot { padding: 7px; font-size: 9px; letter-spacing: .02em; }
+}
