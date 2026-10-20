@@ -1,4 +1,5 @@
 import * as THREE from '../vendor/three/three.module.js';
+import { SecondaryArm, stepAngularSpring } from './avatar-secondary-motion.js?v=20261020-hybrid';
 
 const root = document.querySelector('[data-room-home]');
 const canvas = document.querySelector('[data-room-canvas]');
@@ -508,24 +509,27 @@ if (root && canvas) {
         // A smooth, unadorned soft-bodied mannequin, built from original geometry.
         const mannequinMaterial = standard(0xf2f0e8, { roughness: .78, metalness: 0 });
         const profile = [
-            [0, .72], [.24, .72], [.39, .82], [.46, 1.02], [.45, 1.22],
-            [.39, 1.46], [.29, 1.68], [.19, 1.8], [0, 1.82]
+            [0, .67], [.22, .69], [.33, .8], [.40, .99], [.40, 1.19],
+            [.35, 1.44], [.30, 1.67], [.23, 1.78], [.13, 1.84], [0, 1.85]
         ].map(([r, y]) => new THREE.Vector2(r, y));
         const bodyCurve = new THREE.SplineCurve(profile);
         const torso = new THREE.Mesh(new THREE.LatheGeometry(bodyCurve.getPoints(40), 32), mannequinMaterial);
+        torso.scale.z = .82;
         torso.castShadow = torso.receiveShadow = true;
         playerBody.add(torso);
         const headPivot = new THREE.Group();
-        headPivot.position.set(0, 1.86, 0);
+        headPivot.position.set(0, 1.79, 0);
         playerBody.add(headPivot);
-        const head = new THREE.Mesh(new THREE.SphereGeometry(.37, 32, 24), mannequinMaterial);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(.32, 32, 24), mannequinMaterial);
         head.position.set(0, .31, .025);
-        head.scale.set(1, 1.06, .98);
+        head.scale.set(1, 1, .99);
         head.castShadow = head.receiveShadow = true;
         headPivot.add(head);
 
         // XM6-inspired matte shell, broad padded band and oval over-ear cups.
         const headset = new THREE.Group(); headPivot.add(headset);
+        headset.scale.setScalar(.865);
+        headset.position.y = .04;
         const headsetShell = standard(0x292a2d, { roughness: .72, metalness: .03 });
         const headsetPadding = standard(0x111216, { roughness: .97 });
         const bandPoints = [];
@@ -565,64 +569,54 @@ if (root && canvas) {
             vent.position.set(side * .112, -.055, .035); cup.add(vent);
         });
 
+        // Continuous, softly weighted mesh over a two-bone limb. The elbow
+        // bends the surface instead of exposing two intersecting capsule ends.
+        const skinnedLimb = (profile, jointLength) => {
+            const points = new THREE.SplineCurve(profile.map(([r, y]) => new THREE.Vector2(r, y))).getPoints(50);
+            const geometry = new THREE.LatheGeometry(points, 24);
+            const indices = [], weights = [];
+            const positions = geometry.attributes.position;
+            for (let i = 0; i < positions.count; i++) {
+                const weight = THREE.MathUtils.smoothstep(-positions.getY(i), jointLength - .13, jointLength + .13);
+                indices.push(0, 1, 0, 0); weights.push(1 - weight, weight, 0, 0);
+            }
+            geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(indices, 4));
+            geometry.setAttribute('skinWeight', new THREE.Float32BufferAttribute(weights, 4));
+            const mesh = new THREE.SkinnedMesh(geometry, mannequinMaterial);
+            const upper = new THREE.Bone(), lower = new THREE.Bone();
+            lower.position.y = -jointLength; upper.add(lower); mesh.add(upper);
+            mesh.bind(new THREE.Skeleton([upper, lower]));
+            mesh.castShadow = mesh.receiveShadow = true;
+            return { mesh, upper, lower };
+        };
         const makeArm = (side) => {
-            const shoulder = new THREE.Group(); shoulder.position.set(side * .42, 1.62, 0);
-            playerBody.add(shoulder);
-            const upper = new THREE.Mesh(new THREE.CapsuleGeometry(.142, .37, 8, 20), mannequinMaterial);
-            upper.position.y = -.185; upper.castShadow = true; shoulder.add(upper);
-            const elbow = new THREE.Group(); elbow.position.y = -.37; shoulder.add(elbow);
-            const forearm = new THREE.Mesh(new THREE.CapsuleGeometry(.13, .42, 8, 20), mannequinMaterial);
-            forearm.position.y = -.21; forearm.castShadow = true; elbow.add(forearm);
-            shoulder.userData.elbow = elbow;
-            shoulder.rotation.z = side * .22;
-            elbow.rotation.x = -.04;
-            shoulder.userData.springs = {
-                x: { angle: 0, velocity: 0 },
-                z: { angle: side * .22, velocity: 0 },
-                elbow: { angle: -.04, velocity: 0 }
-            };
-            return shoulder;
+            const arm = skinnedLimb([
+                [0, -1.015], [.075, -.99], [.116, -.94], [.121, -.86],
+                [.112, -.69], [.117, -.43], [.13, -.24], [.135, -.07], [.1, .035], [0, .07]
+            ], .43);
+            arm.mesh.position.set(side * .34, 1.68, 0);
+            playerBody.add(arm.mesh);
+            arm.physics = new SecondaryArm(side, arm.mesh.position);
+            return arm;
         };
         const leftArm = makeArm(-1), rightArm = makeArm(1);
-        // Damped pendulums respond to acceleration and turning rather than
-        // prescribing opposite arm poses on every step.
-        const springAngle = (state, target, stiffness, drag, dt) => {
-            const steps = Math.max(1, Math.ceil(dt / (1 / 120)));
-            const step = dt / steps;
-            for (let i = 0; i < steps; i++) {
-                state.velocity += ((target - state.angle) * stiffness - state.velocity * drag) * step;
-                state.angle += state.velocity * step;
-            }
-            return state.angle;
-        };
-        const poseArm = (arm, side, acceleration, turnRate, motion, dt) => {
-            const springs = arm.userData.springs;
-            const targetX = -playerBody.rotation.x + THREE.MathUtils.clamp(acceleration.z * .028 - side * turnRate * .025, -.3, .3)
-                + Math.sin(walkPhase - side * .25) * .025 * motion;
-            const targetZ = side * .22 - playerBody.rotation.z
-                - THREE.MathUtils.clamp(acceleration.x * .018, -.08, .08);
-            if (reducedMotion) {
-                arm.rotation.set(0, 0, side * .22);
-                arm.userData.elbow.rotation.x = -.04;
-                return;
-            }
-            arm.rotation.x = springAngle(springs.x, targetX, 24, 5.5, dt);
-            arm.rotation.z = springAngle(springs.z, targetZ, 30, 6, dt);
-            const elbowTarget = -.04 - Math.min(.16, Math.abs(springs.x.velocity) * .055);
-            arm.userData.elbow.rotation.x = springAngle(springs.elbow, elbowTarget, 17, 4.5, dt);
+        const balance = {
+            pitch: { angle: 0, velocity: 0 }, roll: { angle: 0, velocity: 0 },
+            headPitch: { angle: 0, velocity: 0 }, headRoll: { angle: 0, velocity: 0 },
+            headYaw: { angle: 0, velocity: 0 }
         };
         const makeLeg = (side) => {
-            const hip = new THREE.Group(); hip.position.set(side * .21, .8, 0); playerBody.add(hip);
-            const thigh = new THREE.Mesh(new THREE.CapsuleGeometry(.155, .34, 8, 20), mannequinMaterial);
-            thigh.position.y = -.17; thigh.castShadow = true; hip.add(thigh);
-            const knee = new THREE.Group(); knee.position.y = -.34; hip.add(knee);
-            const shin = new THREE.Mesh(new THREE.CapsuleGeometry(.14, .34, 8, 20), mannequinMaterial);
-            shin.position.y = -.17; shin.castShadow = true; knee.add(shin);
-            const ankle = new THREE.Group(); ankle.position.y = -.34; knee.add(ankle);
+            const limb = skinnedLimb([
+                [0, -.66], [.11, -.63], [.148, -.55], [.155, -.33],
+                [.17, -.1], [.14, .035], [0, .07]
+            ], .30);
+            const hip = new THREE.Group(); hip.position.set(side * .19, .74, 0); playerBody.add(hip);
+            hip.add(limb.mesh);
+            const ankle = new THREE.Group(); ankle.position.y = -.30; limb.lower.add(ankle);
             const foot = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 16), mannequinMaterial);
-            foot.scale.set(.17, .13, .24); foot.position.set(0, -.01, .08);
+            foot.scale.set(.18, .13, .205); foot.position.set(0, -.01, .055);
             foot.castShadow = foot.receiveShadow = true; ankle.add(foot);
-            return { hip, knee, ankle };
+            return { hip: limb.upper, knee: limb.lower, ankle };
         };
         const leftLeg = makeLeg(-1), rightLeg = makeLeg(1);
         // Two-link leg placement keeps the supporting foot near the floor.
@@ -630,11 +624,11 @@ if (root && canvas) {
             const cycle = ((phase / (Math.PI * 2)) % 1 + 1) % 1;
             const stance = cycle < .6;
             const t = stance ? cycle / .6 : (cycle - .6) / .4;
-            const footZ = (stance ? .25 - .5 * t : -.25 * Math.cos(Math.PI * t)) * weight;
+            const footZ = (stance ? .21 - .42 * t : -.21 * Math.cos(Math.PI * t)) * weight;
             const lift = stance ? 0 : Math.sin(Math.PI * t) * .16 * weight;
-            const down = .66 + bodyHeight - lift;
-            const reach = Math.min(.679, Math.hypot(down, footZ));
-            const bend = 2 * Math.acos(reach / .68);
+            const down = .595 - .035 * weight + bodyHeight - lift;
+            const reach = Math.min(.599, Math.hypot(down, footZ));
+            const bend = 2 * Math.acos(reach / .60);
             leg.hip.rotation.x = Math.atan2(-footZ, down) - bend / 2;
             leg.knee.rotation.x = bend;
             leg.ankle.rotation.x = -leg.hip.rotation.x - bend + (stance ? Math.sin(Math.PI * t) * .06 : -.1 * Math.sin(Math.PI * t)) * weight;
@@ -836,15 +830,26 @@ if (root && canvas) {
             const motion = reducedMotion ? 0 : gaitWeight;
             const idle = reducedMotion ? 0 : Math.sin(elapsed * 1.7) * .009 * (1 - gaitWeight);
             const bodyHeight = (1 - Math.cos(walkPhase * 2)) * .014 * motion;
-            playerBody.position.y = bodyHeight;
+            playerBody.position.y = bodyHeight - .005 - .035 * motion;
             playerBody.position.x = Math.sin(walkPhase) * .035 * motion;
-            playerBody.rotation.z += ((Math.sin(walkPhase - .3) * .085 * motion + idle) - playerBody.rotation.z) * damping;
-            playerBody.rotation.x += ((-.065 * motion + Math.sin(walkPhase * 2 - .6) * .025 * motion) - playerBody.rotation.x) * damping;
-            // Soft, delayed elbows and head retain the loose mannequin character.
-            poseArm(leftArm, -1, localAcceleration, turnRate, motion, delta);
-            poseArm(rightArm, 1, localAcceleration, turnRate, motion, delta);
-            headPivot.rotation.z += ((-Math.sin(walkPhase - .9) * .065 * motion) - headPivot.rotation.z) * damping * .55;
-            headPivot.rotation.x += ((.035 * motion + Math.sin(walkPhase * 2 - 1) * .025 * motion) - headPivot.rotation.x) * damping * .55;
+            const rollTarget = Math.sin(walkPhase - .3) * .055 * motion + idle
+                + THREE.MathUtils.clamp(localAcceleration.x * .009, -.06, .06);
+            const pitchTarget = -.05 * motion + THREE.MathUtils.clamp(localAcceleration.z * .009, -.07, .07);
+            playerBody.rotation.z = reducedMotion ? 0 : stepAngularSpring(balance.roll, rollTarget, 65, 12, delta, .16);
+            playerBody.rotation.x = reducedMotion ? 0 : stepAngularSpring(balance.pitch, pitchTarget, 60, 11, delta, .16);
+            // Head and arms respond to body acceleration; the feet retain their
+            // controlled step cycle so the homepage stays easy to navigate.
+            headPivot.rotation.x = reducedMotion ? 0 : stepAngularSpring(balance.headPitch,
+                -playerBody.rotation.x + localAcceleration.z * .018, 28, 6, delta, .22);
+            headPivot.rotation.z = reducedMotion ? 0 : stepAngularSpring(balance.headRoll,
+                -playerBody.rotation.z + localAcceleration.x * .012, 25, 5.5, delta, .18);
+            headPivot.rotation.y = reducedMotion ? 0 : stepAngularSpring(balance.headYaw,
+                THREE.MathUtils.clamp(-turnRate * .022, -.17, .17), 22, 5, delta, .19);
+            player.updateMatrixWorld(true);
+            for (const arm of [leftArm, rightArm]) {
+                arm.physics.step(delta, playerBody.matrixWorld, .92, reducedMotion);
+                arm.physics.pose(arm.upper, arm.lower);
+            }
             poseLeg(leftLeg, walkPhase, motion, bodyHeight);
             poseLeg(rightLeg, walkPhase + Math.PI, motion, bodyHeight);
 
