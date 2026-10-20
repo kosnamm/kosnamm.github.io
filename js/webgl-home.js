@@ -566,7 +566,7 @@ if (root && canvas) {
         });
 
         const makeArm = (side) => {
-            const shoulder = new THREE.Group(); shoulder.position.set(side * .34, 1.62, 0);
+            const shoulder = new THREE.Group(); shoulder.position.set(side * .42, 1.62, 0);
             playerBody.add(shoulder);
             const upper = new THREE.Mesh(new THREE.CapsuleGeometry(.142, .37, 8, 20), mannequinMaterial);
             upper.position.y = -.185; upper.castShadow = true; shoulder.add(upper);
@@ -574,9 +574,43 @@ if (root && canvas) {
             const forearm = new THREE.Mesh(new THREE.CapsuleGeometry(.13, .42, 8, 20), mannequinMaterial);
             forearm.position.y = -.21; forearm.castShadow = true; elbow.add(forearm);
             shoulder.userData.elbow = elbow;
+            shoulder.rotation.z = side * .22;
+            elbow.rotation.x = -.04;
+            shoulder.userData.springs = {
+                x: { angle: 0, velocity: 0 },
+                z: { angle: side * .22, velocity: 0 },
+                elbow: { angle: -.04, velocity: 0 }
+            };
             return shoulder;
         };
         const leftArm = makeArm(-1), rightArm = makeArm(1);
+        // Damped pendulums respond to acceleration and turning rather than
+        // prescribing opposite arm poses on every step.
+        const springAngle = (state, target, stiffness, drag, dt) => {
+            const steps = Math.max(1, Math.ceil(dt / (1 / 120)));
+            const step = dt / steps;
+            for (let i = 0; i < steps; i++) {
+                state.velocity += ((target - state.angle) * stiffness - state.velocity * drag) * step;
+                state.angle += state.velocity * step;
+            }
+            return state.angle;
+        };
+        const poseArm = (arm, side, acceleration, turnRate, motion, dt) => {
+            const springs = arm.userData.springs;
+            const targetX = -playerBody.rotation.x + THREE.MathUtils.clamp(acceleration.z * .028 - side * turnRate * .025, -.3, .3)
+                + Math.sin(walkPhase - side * .25) * .025 * motion;
+            const targetZ = side * .22 - playerBody.rotation.z
+                - THREE.MathUtils.clamp(acceleration.x * .018, -.08, .08);
+            if (reducedMotion) {
+                arm.rotation.set(0, 0, side * .22);
+                arm.userData.elbow.rotation.x = -.04;
+                return;
+            }
+            arm.rotation.x = springAngle(springs.x, targetX, 24, 5.5, dt);
+            arm.rotation.z = springAngle(springs.z, targetZ, 30, 6, dt);
+            const elbowTarget = -.04 - Math.min(.16, Math.abs(springs.x.velocity) * .055);
+            arm.userData.elbow.rotation.x = springAngle(springs.elbow, elbowTarget, 17, 4.5, dt);
+        };
         const makeLeg = (side) => {
             const hip = new THREE.Group(); hip.position.set(side * .21, .8, 0); playerBody.add(hip);
             const thigh = new THREE.Mesh(new THREE.CapsuleGeometry(.155, .34, 8, 20), mannequinMaterial);
@@ -624,6 +658,10 @@ if (root && canvas) {
         let walkPhase = 0;
         let gaitWeight = 0;
         const previousPosition = new THREE.Vector3();
+        const previousVelocity = new THREE.Vector3();
+        const frameVelocity = new THREE.Vector3();
+        const localAcceleration = new THREE.Vector3();
+        const inversePlayerRotation = new THREE.Quaternion();
         let lastFocusedElement = null;
 
         const resize = () => {
@@ -765,6 +803,7 @@ if (root && canvas) {
 
             const wantsToMove = moveDirection.lengthSq() > 0;
             previousPosition.copy(player.position);
+            const previousHeading = player.rotation.y;
             if (wantsToMove) {
                 moveDirection.normalize();
                 const speed = 1.85;
@@ -781,6 +820,14 @@ if (root && canvas) {
             }
 
             const travelled = player.position.distanceTo(previousPosition);
+            const safeDelta = Math.max(delta, .001);
+            frameVelocity.copy(player.position).sub(previousPosition).divideScalar(safeDelta);
+            localAcceleration.copy(frameVelocity).sub(previousVelocity).divideScalar(safeDelta);
+            inversePlayerRotation.copy(player.quaternion).invert();
+            localAcceleration.applyQuaternion(inversePlayerRotation);
+            localAcceleration.clampLength(0, 12);
+            previousVelocity.copy(frameVelocity);
+            const turnRate = Math.atan2(Math.sin(player.rotation.y - previousHeading), Math.cos(player.rotation.y - previousHeading)) / safeDelta;
             const moving = travelled > .00001;
             const damping = 1 - Math.exp(-delta * 9);
             gaitWeight += ((moving ? 1 : 0) - gaitWeight) * damping;
@@ -794,13 +841,8 @@ if (root && canvas) {
             playerBody.rotation.z += ((Math.sin(walkPhase - .3) * .085 * motion + idle) - playerBody.rotation.z) * damping;
             playerBody.rotation.x += ((-.065 * motion + Math.sin(walkPhase * 2 - .6) * .025 * motion) - playerBody.rotation.x) * damping;
             // Soft, delayed elbows and head retain the loose mannequin character.
-            const armSwing = Math.cos(walkPhase - .7) * .38 * motion;
-            leftArm.rotation.x += (armSwing - .08 * motion - leftArm.rotation.x) * damping * .65;
-            rightArm.rotation.x += (-armSwing - .08 * motion - rightArm.rotation.x) * damping * .65;
-            leftArm.rotation.z = -.1 - .035 * motion * Math.sin(walkPhase - .9);
-            rightArm.rotation.z = .1 - .035 * motion * Math.sin(walkPhase - .9);
-            leftArm.userData.elbow.rotation.x = -.12 - (1 + Math.sin(walkPhase - 1.1)) * .12 * motion;
-            rightArm.userData.elbow.rotation.x = -.12 - (1 - Math.sin(walkPhase - 1.1)) * .12 * motion;
+            poseArm(leftArm, -1, localAcceleration, turnRate, motion, delta);
+            poseArm(rightArm, 1, localAcceleration, turnRate, motion, delta);
             headPivot.rotation.z += ((-Math.sin(walkPhase - .9) * .065 * motion) - headPivot.rotation.z) * damping * .55;
             headPivot.rotation.x += ((.035 * motion + Math.sin(walkPhase * 2 - 1) * .025 * motion) - headPivot.rotation.x) * damping * .55;
             poseLeg(leftLeg, walkPhase, motion, bodyHeight);
