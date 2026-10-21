@@ -1,0 +1,55 @@
+.main:has(.gallery-page) { max-width: 1168px; }
+.gallery-page { padding: 24px 0 64px; }
+.gallery-back { color: var(--secondary); font-size: .85rem; }
+.gallery-back:hover { color: var(--primary); }
+.gallery-heading { margin: 54px 0 40px; max-width: 740px; }
+.gallery-eyebrow { color: #70dce7; font: 600 .65rem/1.5 ui-monospace, monospace; letter-spacing: .16em; margin-bottom: 16px; }
+.gallery-heading h1 { font-size: clamp(2.6rem, 7vw, 5rem); line-height: 1.06; letter-spacing: -.04em; margin-bottom: 20px; }
+.gallery-heading > p:not(.gallery-eyebrow), .gallery-heading time { color: var(--secondary); }
+.gallery-heading time { display: block; margin-top: 18px; font: .7rem ui-monospace, monospace; }
+.gallery-empty { border: 1px solid var(--border); border-radius: 20px; padding: 70px 25px; margin-top: 32px; text-align: center; background: #ffffff02; }
+.gallery-empty > span { display: block; color: #70dce7; font-size: 2rem; margin-bottom: 16px; }
+.gallery-empty h2 { font-size: 1.2rem; margin-bottom: 12px; }
+.gallery-empty p { color: var(--secondary); font-size: .9rem; }
+.gallery-albums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.gallery-album { display: block; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--entry); transition: border-color .2s; }
+.gallery-album:hover { border-color: #70dce7; }
+.gallery-album img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; }
+.gallery-album > div { padding: 18px; }
+.gallery-album h2 { font-size: 1.05rem; margin: 0 0 8px; }
+.gallery-album span { color: var(--secondary); font: .7rem/1.5 ui-monospace, monospace; }
+.gallery-photos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 24px; align-items: start; }
+.gallery-photo { margin: 0; min-width: 0; }
+.gallery-photo > a { display: block; position: relative; background: #0d1020; border-radius: 12px; overflow: hidden; }
+.gallery-photo img { display: block; width: 100%; height: auto; }
+.gallery-photo__expand { position: absolute; right: 12px; bottom: 12px; border-radius: 50%; background: #060812b0; color: white; padding: 4px 12px; }
+.gallery-photo figcaption { display: grid; gap: 5px; padding: 13px 2px 0; font-size: .8rem; }
+.gallery-photo figcaption span { color: var(--secondary); }
+.gallery-viewer { width: 100vw; max-width: none; height: 100dvh; max-height: none; border: 0; padding: 20px 24px; background: #050610f7; color: #f4f2ff; overflow: auto; }
+.gallery-viewer[open] { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 18px; }
+.gallery-viewer::backdrop { background: #000c; }
+.gallery-viewer__toolbar { display: flex; justify-content: space-between; align-items: center; font: .8rem ui-monospace, monospace; }
+.gallery-viewer button { min-width: 44px; min-height: 44px; border: 1px solid #ffffff30; border-radius: 9px; padding: 8px 14px; color: white; background: #ffffff0a; cursor: pointer; }
+.gallery-viewer button:hover { background: #ffffff20; }
+.gallery-viewer__stage { position: relative; display: grid; grid-template-columns: 48px minmax(0, 1fr) 48px; align-items: center; gap: 16px; min-height: 0; }
+.gallery-viewer__stage img { display: block; max-width: 100%; max-height: calc(100dvh - 190px); object-fit: contain; margin: auto; }
+.gallery-viewer__caption { text-align: center; min-height: 45px; font-size: .85rem; }
+.gallery-viewer__caption p { color: #aaa7bf; margin-top: 7px; }
+.gallery-viewer [hidden] { visibility: hidden; display: block; }
+.gallery-page :focus-visible, .gallery-viewer :focus-visible { outline: 2px solid #70dce7; outline-offset: 4px; }
+.room-panel__content .gallery-empty { padding: 36px 20px; }
+.room-panel__content .gallery-albums { grid-template-columns: 1fr; gap: 16px; }
+.room-panel__content .gallery-album h2 { font-size: 1rem; }
+@media (max-width: 900px) { .gallery-albums { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) {
+    .gallery-albums { grid-template-columns: 1fr; }
+    .gallery-page { padding-top: 12px; }
+    .gallery-heading { margin: 36px 0 28px; }
+    .gallery-photos { grid-template-columns: 1fr; gap: 26px; }
+    .gallery-viewer { padding: 12px; }
+    .gallery-viewer__stage { grid-template-columns: 44px minmax(0, 1fr) 44px; gap: 6px; }
+    .gallery-viewer__stage button { min-width: 44px; padding: 5px; }
+}
+@media (prefers-reduced-motion: reduce) { .gallery-album { transition: none; } }
+
+.gallery-viewer__status { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; color: #aaa7bf; font-size: .85rem; }
