@@ -6,6 +6,7 @@ if (viewer && photos.length && typeof viewer.showModal === 'function') {
     const title = viewer.querySelector('[data-gallery-title]');
     const caption = viewer.querySelector('[data-gallery-caption]');
     const count = viewer.querySelector('[data-gallery-count]');
+    const info = viewer.querySelector('[data-gallery-info]');
     const previous = viewer.querySelector('[data-gallery-prev]');
     const next = viewer.querySelector('[data-gallery-next]');
     let current = 0;
@@ -22,6 +23,23 @@ if (viewer && photos.length && typeof viewer.showModal === 'function') {
         title.textContent = photo.dataset.title;
         caption.textContent = photo.dataset.caption;
         count.textContent = `${current + 1} / ${photos.length}`;
+        info.replaceChildren();
+        let fields = [];
+        try { fields = JSON.parse(photo.dataset.info || '[]'); } catch { /* Keep the image usable if metadata is invalid. */ }
+        fields.forEach(field => {
+            const row = document.createElement('div');
+            const label = document.createElement('dt');
+            const value = document.createElement('dd');
+            label.textContent = field.label;
+            value.textContent = field.value;
+            if (field.source) {
+                const source = document.createElement('small');
+                source.textContent = field.source;
+                value.appendChild(source);
+            }
+            row.append(label, value);
+            info.appendChild(row);
+        });
         previous.hidden = next.hidden = photos.length < 2;
     };
     image.addEventListener('load', () => { status.hidden = true; image.style.opacity = '1'; });
