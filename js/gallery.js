@@ -1,6 +1,7 @@
 const viewer = document.querySelector('[data-gallery-viewer]');
-const photos = [...document.querySelectorAll('[data-gallery-photo]')];
-if (viewer && photos.length && typeof viewer.showModal === 'function') {
+const photoLinks = [...document.querySelectorAll('[data-gallery-photo]')];
+if (viewer && photoLinks.length && typeof viewer.showModal === 'function') {
+    let photos = photoLinks;
     const image = viewer.querySelector('[data-gallery-image]');
     const status = viewer.querySelector('[data-gallery-status]');
     const title = viewer.querySelector('[data-gallery-title]');
@@ -44,15 +45,35 @@ if (viewer && photos.length && typeof viewer.showModal === 'function') {
     };
     image.addEventListener('load', () => { status.hidden = true; image.style.opacity = '1'; });
     image.addEventListener('error', () => { status.textContent = 'This photograph could not be loaded.'; });
-    photos.forEach((photo, index) => photo.addEventListener('click', event => {
-        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-        event.preventDefault();
-        opener = photo;
+    const openPhoto = (photo, openingElement = photo) => {
+        const panel = photo.closest('[data-gallery-view-panel]');
+        const candidates = panel ? [...panel.querySelectorAll('[data-gallery-photo]')] : photoLinks;
+        const seen = new Set();
+        photos = candidates.filter(candidate => {
+            const id = candidate.dataset.photoId || candidate.href;
+            if (seen.has(id)) return false;
+            seen.add(id);
+            return true;
+        });
+        const index = photos.findIndex(candidate => (candidate.dataset.photoId || candidate.href) === (photo.dataset.photoId || photo.href));
+        if (index < 0) return;
+        opener = openingElement;
         show(index);
         previousOverflow = document.documentElement.style.overflow;
         viewer.showModal();
         document.documentElement.style.overflow = 'hidden';
+    };
+    photoLinks.forEach(photo => photo.addEventListener('click', event => {
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        openPhoto(photo);
     }));
+    document.addEventListener('gallery:open', event => {
+        const photo = photoLinks.find(candidate => candidate.dataset.photoId === event.detail?.photoId && !candidate.closest('[data-gallery-view-panel]')?.hidden);
+        if (!photo) return;
+        event.preventDefault();
+        openPhoto(photo, event.detail.opener || photo);
+    });
     const restorePage = () => {
         if (viewer.open) return;
         document.documentElement.style.overflow = previousOverflow;
