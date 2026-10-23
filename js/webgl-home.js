@@ -10,8 +10,27 @@ if (root && canvas) {
     const promptKicker = root.querySelector('[data-room-prompt-kicker]');
     const panelContainer = root.querySelector('[data-room-panel-container]');
     const panelSections = [...root.querySelectorAll('[data-room-panel]')];
+    const intro = root.querySelector('[data-room-intro]');
     const keys = new Set();
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let introTimer;
+    let introFinished = false;
+
+    const dismissIntro = () => {
+        if (!intro || introFinished) return;
+        introFinished = true;
+        window.clearTimeout(introTimer);
+        document.removeEventListener('visibilitychange', showIntro);
+        intro.classList.add('is-leaving');
+        if (reducedMotion) intro.hidden = true;
+        else window.setTimeout(() => { intro.hidden = true; }, 180);
+    };
+    const showIntro = () => {
+        if (!intro || introFinished || document.hidden) return;
+        document.removeEventListener('visibilitychange', showIntro);
+        intro.hidden = false;
+        introTimer = window.setTimeout(dismissIntro, 1800);
+    };
 
     let renderer;
     try {
@@ -500,7 +519,8 @@ if (root && canvas) {
         });
 
         const player = new THREE.Group();
-        player.position.set(-.6, 0, 2.4);
+        // Start in the central aisle, clear of the desk, bed and sofa.
+        player.position.set(.65, 0, -.75);
         player.scale.setScalar(.92);
         scene.add(player);
 
@@ -696,6 +716,7 @@ if (root && canvas) {
         const openPanel = (id) => {
             const selected = panelSections.find((section) => section.dataset.roomPanel === id);
             if (!selected) return;
+            dismissIntro();
             lastFocusedElement = document.activeElement;
             keys.clear();
             panelSections.forEach((section) => { section.hidden = section !== selected; });
@@ -714,6 +735,7 @@ if (root && canvas) {
         };
 
         const interact = () => {
+            dismissIntro();
             if (nearbyZone && !panelOpen) openPanel(nearbyZone.id);
         };
 
@@ -736,6 +758,7 @@ if (root && canvas) {
             }
             if (movementKeys.has(event.key) && !panelOpen) {
                 event.preventDefault();
+                dismissIntro();
                 keys.add(event.key.toLowerCase());
             }
         });
@@ -753,6 +776,7 @@ if (root && canvas) {
             const key = button.dataset.roomKey.toLowerCase();
             const start = (event) => {
                 event.preventDefault();
+                dismissIntro();
                 keys.add(key);
                 button.setPointerCapture?.(event.pointerId);
             };
@@ -883,5 +907,7 @@ if (root && canvas) {
         renderer.compile(scene, camera);
         root.classList.add('is-room-ready');
         animate();
+        if (document.hidden) document.addEventListener('visibilitychange', showIntro);
+        else showIntro();
     }
 }

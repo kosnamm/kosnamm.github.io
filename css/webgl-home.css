@@ -132,6 +132,44 @@ kbd {
     display: none;
 }
 
+.room-home__intro {
+    position: fixed;
+    z-index: 8;
+    top: 50%;
+    left: 50%;
+    width: min(420px, calc(100vw - 40px));
+    padding: 26px 30px;
+    border: 1px solid rgba(221, 234, 255, 0.2);
+    border-radius: 20px;
+    transform: translate(-50%, -50%);
+    color: #f6f3ff;
+    background: rgba(14, 17, 34, 0.66);
+    box-shadow: 0 20px 70px rgba(0, 0, 0, 0.35), inset 0 1px rgba(255, 255, 255, 0.08);
+    -webkit-backdrop-filter: blur(22px) saturate(130%);
+    backdrop-filter: blur(22px) saturate(130%);
+    pointer-events: none;
+    transition: opacity 180ms ease;
+}
+
+.room-home__intro[hidden] { display: none; }
+.room-home__intro.is-leaving { opacity: 0; }
+.room-home__intro > p {
+    margin: 0 0 20px;
+    color: rgb(var(--room-cyan));
+    font: 600 0.64rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+.room-home__intro-keyboard, .room-home__intro-touch { display: grid; gap: 16px; }
+.room-home__intro-keyboard > div, .room-home__intro-touch > div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+}
+.room-home__intro kbd { padding: 7px 9px; font-size: 0.8rem; }
+.room-home__intro-touch { display: none; }
+
 .room-home__controls {
     position: absolute;
     z-index: 2;
@@ -441,6 +479,10 @@ kbd {
         display: none;
     }
 
+    .room-home__intro { padding: 24px; }
+    .room-home__intro-keyboard { display: none; }
+    .room-home__intro-touch { display: grid; }
+
     .room-home__prompt {
         bottom: 118px;
     }
@@ -498,7 +540,8 @@ kbd {
 
 @media (prefers-reduced-motion: reduce) {
     .room-home__canvas,
-    .room-panel__sheet {
+    .room-panel__sheet,
+    .room-home__intro {
         transition: none;
         animation: none;
     }
