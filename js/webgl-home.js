@@ -23,13 +23,13 @@ if (root && canvas) {
         document.removeEventListener('visibilitychange', showIntro);
         intro.classList.add('is-leaving');
         if (reducedMotion) intro.hidden = true;
-        else window.setTimeout(() => { intro.hidden = true; }, 180);
+        else window.setTimeout(() => { intro.hidden = true; }, 650);
     };
     const showIntro = () => {
         if (!intro || introFinished || document.hidden) return;
         document.removeEventListener('visibilitychange', showIntro);
         intro.hidden = false;
-        introTimer = window.setTimeout(dismissIntro, 1800);
+        introTimer = window.setTimeout(dismissIntro, 1400);
     };
 
     let renderer;

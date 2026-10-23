@@ -148,7 +148,7 @@ kbd {
     -webkit-backdrop-filter: blur(22px) saturate(130%);
     backdrop-filter: blur(22px) saturate(130%);
     pointer-events: none;
-    transition: opacity 180ms ease;
+    transition: opacity 600ms ease-in-out;
 }
 
 .room-home__intro[hidden] { display: none; }
