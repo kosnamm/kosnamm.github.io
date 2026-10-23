@@ -17,8 +17,8 @@ export function stepAngularSpring(state, target, stiffness, drag, dt, limit = .3
     return state.angle;
 }
 
-// A passive two-link arm: the shoulder is animated; elbow and hand are particles
-// constrained by segment lengths, gravity, body clearance and the floor.
+// A two-link arm with passive inertia and a weak optional balancing effort.
+// Elbow and hand are constrained by length, gravity, body clearance and floor.
 export class SecondaryArm {
     constructor(side, shoulder, upperLength = .43, lowerLength = .48) {
         this.side = side;
@@ -32,6 +32,7 @@ export class SecondaryArm {
         this.delta = new THREE.Vector3();
         this.direction = new THREE.Vector3();
         this.oldDirection = new THREE.Vector3();
+        this.balanceTarget = new THREE.Vector3();
         this.initialized = false;
     }
 
@@ -78,7 +79,7 @@ export class SecondaryArm {
         node.position.y = Math.max(node.position.y, .13);
     }
 
-    step(dt, bodyMatrix, scale = 1, reducedMotion = false) {
+    step(dt, bodyMatrix, scale = 1, reducedMotion = false, balance = null) {
         if (!this.initialized || reducedMotion) this.reset(bodyMatrix);
         this.inverseBody.copy(bodyMatrix).invert();
         this.anchor.copy(this.shoulder).applyMatrix4(bodyMatrix);
@@ -89,10 +90,19 @@ export class SecondaryArm {
         for (let substep = 0; substep < steps; substep++) {
             const root = this.nodes[0];
             root.position.lerpVectors(this.lastAnchor, this.anchor, (substep + 1) / steps);
-            for (const node of this.nodes.slice(1)) {
+            for (const [index, node] of this.nodes.slice(1).entries()) {
                 node.before.copy(node.position);
                 node.velocity.multiplyScalar(Math.exp(-2.8 * h));
                 node.velocity.y -= 9.81 * h;
+                // A weak balancing effort, opposed to the same-side foot. The
+                // joints still lag behind the shoulder under their own inertia.
+                if (balance) {
+                    this.balanceTarget.set(this.side * (index ? .17 : .10), index ? -.84 : -.40,
+                        balance.forward * (index ? 1 : .45));
+                    this.balanceTarget.x += this.side * balance.outward;
+                    this.balanceTarget.add(this.shoulder).applyMatrix4(bodyMatrix).sub(node.position);
+                    node.velocity.addScaledVector(this.balanceTarget, 12 * h);
+                }
                 node.position.addScaledVector(node.velocity, h);
             }
             for (let iteration = 0; iteration < 12; iteration++) {

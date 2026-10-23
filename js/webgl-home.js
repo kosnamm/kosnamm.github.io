@@ -1,5 +1,7 @@
 import * as THREE from '../vendor/three/three.module.js';
-import { SecondaryArm, stepAngularSpring } from './avatar-secondary-motion.js?v=20261020-hybrid';
+import { SecondaryArm, stepAngularSpring } from './avatar-secondary-motion.js?v=20261023-locomotion';
+import { AvatarLocomotion } from './avatar-locomotion.js?v=20261023-locomotion';
+import { posePlantedLeg } from './avatar-leg-ik.js?v=20261023-locomotion';
 
 const root = document.querySelector('[data-room-home]');
 const canvas = document.querySelector('[data-room-canvas]');
@@ -524,8 +526,12 @@ if (root && canvas) {
         player.scale.setScalar(.92);
         scene.add(player);
 
+        const pelvisPivot = new THREE.Group();
+        pelvisPivot.position.y = .74;
+        player.add(pelvisPivot);
         const playerBody = new THREE.Group();
-        player.add(playerBody);
+        playerBody.position.y = -.74;
+        pelvisPivot.add(playerBody);
         // A smooth, unadorned soft-bodied mannequin, built from original geometry.
         const mannequinMaterial = standard(0xf2f0e8, { roughness: .78, metalness: 0 });
         const profile = [
@@ -533,13 +539,28 @@ if (root && canvas) {
             [.35, 1.44], [.30, 1.67], [.23, 1.78], [.13, 1.84], [0, 1.85]
         ].map(([r, y]) => new THREE.Vector2(r, y));
         const bodyCurve = new THREE.SplineCurve(profile);
-        const torso = new THREE.Mesh(new THREE.LatheGeometry(bodyCurve.getPoints(40), 32), mannequinMaterial);
-        torso.scale.z = .82;
+        const torsoGeometry = new THREE.LatheGeometry(bodyCurve.getPoints(40), 32);
+        torsoGeometry.scale(1, 1, .82);
+        const torsoIndices = [], torsoWeights = [];
+        for (let i = 0; i < torsoGeometry.attributes.position.count; i++) {
+            const weight = THREE.MathUtils.smoothstep(torsoGeometry.attributes.position.getY(i), 1.02, 1.64);
+            torsoIndices.push(0, 1, 0, 0);
+            torsoWeights.push(1 - weight, weight, 0, 0);
+        }
+        torsoGeometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(torsoIndices, 4));
+        torsoGeometry.setAttribute('skinWeight', new THREE.Float32BufferAttribute(torsoWeights, 4));
+        const torso = new THREE.SkinnedMesh(torsoGeometry, mannequinMaterial);
+        const pelvisBone = new THREE.Bone(), chestBone = new THREE.Bone();
+        pelvisBone.position.y = .74;
+        chestBone.position.y = .60;
+        pelvisBone.add(chestBone);
+        torso.add(pelvisBone);
+        torso.bind(new THREE.Skeleton([pelvisBone, chestBone]));
         torso.castShadow = torso.receiveShadow = true;
         playerBody.add(torso);
         const headPivot = new THREE.Group();
-        headPivot.position.set(0, 1.79, 0);
-        playerBody.add(headPivot);
+        headPivot.position.set(0, .45, 0);
+        chestBone.add(headPivot);
         const head = new THREE.Mesh(new THREE.SphereGeometry(.32, 32, 24), mannequinMaterial);
         head.position.set(0, .31, .025);
         head.scale.set(1, 1, .99);
@@ -622,6 +643,8 @@ if (root && canvas) {
         const leftArm = makeArm(-1), rightArm = makeArm(1);
         const balance = {
             pitch: { angle: 0, velocity: 0 }, roll: { angle: 0, velocity: 0 },
+            chestPitch: { angle: 0, velocity: 0 }, chestRoll: { angle: 0, velocity: 0 },
+            chestYaw: { angle: 0, velocity: 0 },
             headPitch: { angle: 0, velocity: 0 }, headRoll: { angle: 0, velocity: 0 },
             headYaw: { angle: 0, velocity: 0 }
         };
@@ -636,23 +659,9 @@ if (root && canvas) {
             const foot = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 16), mannequinMaterial);
             foot.scale.set(.18, .13, .205); foot.position.set(0, -.01, .055);
             foot.castShadow = foot.receiveShadow = true; ankle.add(foot);
-            return { hip: limb.upper, knee: limb.lower, ankle };
+            return { side, hipPivot: hip, hip: limb.upper, knee: limb.lower, ankle };
         };
         const leftLeg = makeLeg(-1), rightLeg = makeLeg(1);
-        // Two-link leg placement keeps the supporting foot near the floor.
-        const poseLeg = (leg, phase, weight, bodyHeight) => {
-            const cycle = ((phase / (Math.PI * 2)) % 1 + 1) % 1;
-            const stance = cycle < .6;
-            const t = stance ? cycle / .6 : (cycle - .6) / .4;
-            const footZ = (stance ? .21 - .42 * t : -.21 * Math.cos(Math.PI * t)) * weight;
-            const lift = stance ? 0 : Math.sin(Math.PI * t) * .16 * weight;
-            const down = .595 - .035 * weight + bodyHeight - lift;
-            const reach = Math.min(.599, Math.hypot(down, footZ));
-            const bend = 2 * Math.acos(reach / .60);
-            leg.hip.rotation.x = Math.atan2(-footZ, down) - bend / 2;
-            leg.knee.rotation.x = bend;
-            leg.ankle.rotation.x = -leg.hip.rotation.x - bend + (stance ? Math.sin(Math.PI * t) * .06 : -.1 * Math.sin(Math.PI * t)) * weight;
-        };
 
         const playerShadow = new THREE.Mesh(new THREE.CircleGeometry(0.52, 24), basic(0x000000, 0.28));
         playerShadow.rotation.x = -Math.PI / 2;
@@ -665,17 +674,16 @@ if (root && canvas) {
         const movementForward = new THREE.Vector3(-1, 0, -1).normalize();
         const movementRight = new THREE.Vector3(1, 0, -1).normalize();
         const moveDirection = new THREE.Vector3();
-        const nextPosition = new THREE.Vector3();
         const screenPosition = new THREE.Vector3();
         let nearbyZone = null;
         let panelOpen = false;
-        let walkPhase = 0;
-        let gaitWeight = 0;
-        const previousPosition = new THREE.Vector3();
-        const previousVelocity = new THREE.Vector3();
-        const frameVelocity = new THREE.Vector3();
         const localAcceleration = new THREE.Vector3();
         const inversePlayerRotation = new THREE.Quaternion();
+        const inverseBodyMatrix = new THREE.Matrix4();
+        const shoulderPosition = new THREE.Vector3();
+        const footLocal = new THREE.Vector3();
+        const hipWorld = new THREE.Vector3();
+        let supportSway = 0;
         let lastFocusedElement = null;
 
         const resize = () => {
@@ -703,6 +711,8 @@ if (root && canvas) {
                 z > obstacle.minZ - radius && z < obstacle.maxZ + radius
             ));
         };
+        const locomotion = new AvatarLocomotion({ position: player.position, yaw: player.rotation.y,
+            scale: .92, isBlocked, floorY: .035 });
 
         const setNearbyZone = (zone) => {
             if (nearbyZone === zone) return;
@@ -719,6 +729,7 @@ if (root && canvas) {
             dismissIntro();
             lastFocusedElement = document.activeElement;
             keys.clear();
+            locomotion.stop();
             panelSections.forEach((section) => { section.hidden = section !== selected; });
             panelContainer.hidden = false;
             panelOpen = true;
@@ -763,7 +774,7 @@ if (root && canvas) {
             }
         });
         window.addEventListener('keyup', (event) => keys.delete(event.key.toLowerCase()));
-        window.addEventListener('blur', () => keys.clear());
+        window.addEventListener('blur', () => { keys.clear(); locomotion.stop(); });
         panelContainer.addEventListener('keydown', (event) => {
             if (event.key !== 'Tab') return;
             const items = [...panelContainer.querySelectorAll('button, a[href]')].filter(el => el.getClientRects().length);
@@ -801,11 +812,6 @@ if (root && canvas) {
             if (zone) openPanel(zone.id);
         });
 
-        const lerpAngle = (start, end, amount) => {
-            const difference = Math.atan2(Math.sin(end - start), Math.cos(end - start));
-            return start + difference * amount;
-        };
-
         const animate = (timestamp) => {
             timer.update(timestamp);
             const delta = Math.min(timer.getDelta(), 0.04);
@@ -819,63 +825,67 @@ if (root && canvas) {
                 if (keys.has('arrowleft') || keys.has('a')) moveDirection.sub(movementRight);
             }
 
-            const wantsToMove = moveDirection.lengthSq() > 0;
-            previousPosition.copy(player.position);
-            const previousHeading = player.rotation.y;
-            if (wantsToMove) {
-                moveDirection.normalize();
-                const speed = 1.85;
-                nextPosition.copy(player.position);
-                nextPosition.x += moveDirection.x * speed * delta;
-                if (!isBlocked(nextPosition.x, player.position.z)) player.position.x = nextPosition.x;
-                nextPosition.copy(player.position);
-                nextPosition.z += moveDirection.z * speed * delta;
-                if (!isBlocked(player.position.x, nextPosition.z)) player.position.z = nextPosition.z;
-
-                const targetRotation = Math.atan2(moveDirection.x, moveDirection.z);
-                player.rotation.y = lerpAngle(player.rotation.y, targetRotation, Math.min(delta * 10, 1));
-
-            }
-
-            const travelled = player.position.distanceTo(previousPosition);
-            const safeDelta = Math.max(delta, .001);
-            frameVelocity.copy(player.position).sub(previousPosition).divideScalar(safeDelta);
-            localAcceleration.copy(frameVelocity).sub(previousVelocity).divideScalar(safeDelta);
+            locomotion.step(delta, moveDirection, { disabled: panelOpen, reducedMotion });
+            player.position.copy(locomotion.position);
+            player.rotation.y = locomotion.yaw;
             inversePlayerRotation.copy(player.quaternion).invert();
-            localAcceleration.applyQuaternion(inversePlayerRotation);
-            localAcceleration.clampLength(0, 12);
-            previousVelocity.copy(frameVelocity);
-            const turnRate = Math.atan2(Math.sin(player.rotation.y - previousHeading), Math.cos(player.rotation.y - previousHeading)) / safeDelta;
-            const moving = travelled > .00001;
-            const damping = 1 - Math.exp(-delta * 9);
-            gaitWeight += ((moving ? 1 : 0) - gaitWeight) * damping;
-            // Advance by actual distance, so a blocked character stops stepping.
-            walkPhase += travelled * Math.PI * 2 / (.92 * 1.0);
-            const motion = reducedMotion ? 0 : gaitWeight;
-            const idle = reducedMotion ? 0 : Math.sin(elapsed * 1.7) * .009 * (1 - gaitWeight);
-            const bodyHeight = (1 - Math.cos(walkPhase * 2)) * .014 * motion;
-            playerBody.position.y = bodyHeight - .005 - .035 * motion;
-            playerBody.position.x = Math.sin(walkPhase) * .035 * motion;
-            const rollTarget = Math.sin(walkPhase - .3) * .055 * motion + idle
-                + THREE.MathUtils.clamp(localAcceleration.x * .009, -.06, .06);
-            const pitchTarget = -.05 * motion + THREE.MathUtils.clamp(localAcceleration.z * .009, -.07, .07);
-            playerBody.rotation.z = reducedMotion ? 0 : stepAngularSpring(balance.roll, rollTarget, 65, 12, delta, .16);
-            playerBody.rotation.x = reducedMotion ? 0 : stepAngularSpring(balance.pitch, pitchTarget, 60, 11, delta, .16);
-            // Head and arms respond to body acceleration; the feet retain their
-            // controlled step cycle so the homepage stays easy to navigate.
+            localAcceleration.copy(locomotion.acceleration).applyQuaternion(inversePlayerRotation).clampLength(0, 10);
+            const motion = reducedMotion ? 0 : locomotion.stepWeight;
+            const speedWeight = Math.min(locomotion.speed / 1.7, 1);
+            const turnRate = locomotion.turnRate;
+            // Shift weight onto the supporting leg; separate pelvis, chest and
+            // head springs give starts, landings and turns a delayed response.
+            supportSway = THREE.MathUtils.damp(supportSway, reducedMotion ? 0 : locomotion.support, 10, delta);
+            pelvisPivot.position.x = supportSway * .025;
+            pelvisPivot.position.y = .74 - .055 - .022 * motion - locomotion.landing * .012 * (reducedMotion ? 0 : 1);
+            const idle = reducedMotion ? 0 : Math.sin(elapsed * 1.7) * .004 * (1 - motion);
+            pelvisPivot.rotation.z = reducedMotion ? 0 : stepAngularSpring(balance.roll,
+                -supportSway * .045 + localAcceleration.x * .006 + idle, 48, 10, delta, .12);
+            pelvisPivot.rotation.x = reducedMotion ? 0 : stepAngularSpring(balance.pitch,
+                .025 * speedWeight - localAcceleration.z * .006, 48, 10, delta, .10);
+            chestBone.rotation.x = reducedMotion ? 0 : stepAngularSpring(balance.chestPitch,
+                .045 * speedWeight - localAcceleration.z * .014, 30, 7, delta, .16);
+            chestBone.rotation.z = reducedMotion ? 0 : stepAngularSpring(balance.chestRoll,
+                supportSway * .055 + localAcceleration.x * .010, 30, 7, delta, .13);
+            chestBone.rotation.y = reducedMotion ? 0 : stepAngularSpring(balance.chestYaw,
+                THREE.MathUtils.clamp(-turnRate * .045, -.19, .19), 28, 6.5, delta, .21);
             headPivot.rotation.x = reducedMotion ? 0 : stepAngularSpring(balance.headPitch,
-                -playerBody.rotation.x + localAcceleration.z * .018, 28, 6, delta, .22);
+                -(pelvisPivot.rotation.x + chestBone.rotation.x) * .65 + localAcceleration.z * .009, 22, 5.5, delta, .19);
             headPivot.rotation.z = reducedMotion ? 0 : stepAngularSpring(balance.headRoll,
-                -playerBody.rotation.z + localAcceleration.x * .012, 25, 5.5, delta, .18);
+                -(pelvisPivot.rotation.z + chestBone.rotation.z) * .7 + localAcceleration.x * .008, 22, 5.5, delta, .16);
             headPivot.rotation.y = reducedMotion ? 0 : stepAngularSpring(balance.headYaw,
-                THREE.MathUtils.clamp(-turnRate * .022, -.17, .17), 22, 5, delta, .19);
+                THREE.MathUtils.clamp(turnRate * .035, -.15, .15), 24, 6, delta, .18);
             player.updateMatrixWorld(true);
-            for (const arm of [leftArm, rightArm]) {
-                arm.physics.step(delta, playerBody.matrixWorld, .92, reducedMotion);
+            // Keep enough knee bend for the actual contact, including a raised
+            // hip during weight transfer. Lower the pelvis rather than pulling
+            // a supporting foot away from its locked point to meet a reach cap.
+            let requiredDrop = 0;
+            for (const [index, leg] of [leftLeg, rightLeg].entries()) {
+                leg.hipPivot.getWorldPosition(hipWorld);
+                const contact = locomotion.feet[index].position;
+                const horizontal = Math.hypot(hipWorld.x - contact.x, hipWorld.z - contact.z);
+                const vertical = Math.sqrt(Math.max(0, (.595 * .92) ** 2 - horizontal ** 2));
+                requiredDrop = Math.max(requiredDrop, hipWorld.y - contact.y - .14 * .92 - vertical);
+            }
+            if (requiredDrop > 0) {
+                pelvisPivot.position.y -= Math.min(requiredDrop / .92, .12);
+                player.updateMatrixWorld(true);
+            }
+            posePlantedLeg(leftLeg, locomotion.feet[0]);
+            posePlantedLeg(rightLeg, locomotion.feet[1]);
+            inverseBodyMatrix.copy(playerBody.matrixWorld).invert();
+            for (const [index, arm] of [leftArm, rightArm].entries()) {
+                const side = index === 0 ? -1 : 1;
+                shoulderPosition.set(side * .34, .34, 0).applyMatrix4(chestBone.matrixWorld).applyMatrix4(inverseBodyMatrix);
+                arm.mesh.position.copy(shoulderPosition);
+                arm.physics.shoulder.copy(shoulderPosition);
+                footLocal.copy(locomotion.feet[index].position).sub(player.position).applyQuaternion(inversePlayerRotation);
+                arm.physics.step(delta, playerBody.matrixWorld, .92, reducedMotion, {
+                    forward: THREE.MathUtils.clamp(-footLocal.z * .65 - localAcceleration.z * .009, -.18, .18),
+                    outward: Math.min(Math.abs(turnRate) * .013, .045)
+                });
                 arm.physics.pose(arm.upper, arm.lower);
             }
-            poseLeg(leftLeg, walkPhase, motion, bodyHeight);
-            poseLeg(rightLeg, walkPhase + Math.PI, motion, bodyHeight);
 
             let nearest = null;
             let nearestDistance = Infinity;
